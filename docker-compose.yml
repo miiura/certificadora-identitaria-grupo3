@@ -1,0 +1,38 @@
+services:
+  # Serviço do Banco de Dados
+  mongodb:
+    image: mongo:latest
+    container_name: ellp_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ellp_network
+
+  # Serviço do Backend (Node.js)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ellp_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGO_URI=mongodb://mongodb:27017/ellp_db
+    depends_on:
+      - mongodb
+    networks:
+      - ellp_network
+    # O volume abaixo cria o "Hot Reload": você edita o código e o servidor atualiza sozinho
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+
+volumes:
+  mongo_data:
+
+networks:
+  ellp_network:
+    driver: bridge
