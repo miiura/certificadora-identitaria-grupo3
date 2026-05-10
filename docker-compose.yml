@@ -5,8 +5,11 @@ services:
     container_name: ellp_mongodb
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=ellp_db
     volumes:
       - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
       - ellp_network
 
@@ -21,6 +24,7 @@ services:
     environment:
       - PORT=3000
       - MONGO_URI=mongodb://mongodb:27017/ellp_db
+      - JWT_SECRET=3a8136700696376531414b35b0964e7c2c7c233452d0388d8e9c264a366958ed78342551f5232e0f12f98e1d4e5d1a4a640a9c595db48027bef553738bc38ef0
     depends_on:
       - mongodb
     networks:
