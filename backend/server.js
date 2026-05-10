@@ -5,6 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet'; // 🛡️ Importação do Helmet
 import mongoSanitize from 'express-mongo-sanitize'; // 🛡️ Importação do Mongo Sanitize
 import xss from 'xss-clean'; // 🛡️ Importação do XSS Clean
+import { setupSwagger } from './config/swagger.js'; // 📄 Importação do Swagger
 
 import authRoutes from './routes/authRoutes.js';
 
@@ -56,6 +57,9 @@ app.use(xss());
 // Aplicando rate limiter nas rotas de autenticação
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
+
+// 📄 Inicia a rota da Documentação do Swagger
+setupSwagger(app);
 
 
 // ==========================================
