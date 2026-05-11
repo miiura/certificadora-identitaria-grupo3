@@ -2,15 +2,16 @@
 
 O **Portal ELLP** é uma aplicação web desenvolvida para o gerenciamento e controle de voluntários vinculados ao projeto de extensão **Ensino Lúdico de Lógica de Programação (ELLP)** da UTFPR - Câmpus Cornélio Procópio. 
 
-O sistema visa substituir processos manuais por uma solução digital, centralizando informações, promovendo eficiência administrativa e garantindo a rastreabilidade das atividades dos voluntários.
+O sistema visa substituir processos manuais por uma solução digital, centralizando informações, promovendo eficiência administrativa e garantindo maior agilidade e precisão no preenchimento de termos de voluntariado.
+
+**Acesse o planejamento:** https://docs.google.com/document/d/1IHckKJ0OoK6IOzt1yJcXd-NgYad67nbC-sKFsRNeL1k/edit?usp=sharing
+**Acesse o protótipo:** https://www.figma.com/design/VGaBBQjMRWEabPjkqaNGZE/Untitled?node-id=0-1&t=SWGdFTGOA1hosOR8-1
 
 ---
 
 ## ✨ Funcionalidades Principais
 
-* **Gestão de Voluntários:** Cadastro, edição, inativação lógica e registro de datas de ingresso e desligamento.
-* **Gestão de Oficinas:** Cadastro e detalhamento de oficinas realizadas pelo projeto.
-* **Controle de Participação:** Associação de voluntários às oficinas em que atuaram.
+* **Gestão de Usuários:** Cadastro, edição, inativação lógica dos voluntários e coordenadores do projeto.
 * **Histórico e Relatórios:** Consulta do histórico completo de atividades do voluntário.
 * **Emissão de Documentos:** Geração automática do Termo de Voluntariado em PDF.
 * **Segurança:** Autenticação de usuários via JWT e controle de níveis de acesso (Administrador/Comum).
