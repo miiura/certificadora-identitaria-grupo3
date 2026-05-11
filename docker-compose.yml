@@ -7,9 +7,9 @@ services:
       - "27017:27017"
     environment:
       - MONGO_INITDB_DATABASE=ellp_db
-    volumes:
-      - mongo_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    #volumes:
+    #  - mongo_data:/data/db
+    #  - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
       - ellp_network
 
@@ -34,8 +34,8 @@ services:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
 
-volumes:
-  mongo_data:
+#volumes:
+#  mongo_data:
 
 networks:
   ellp_network:

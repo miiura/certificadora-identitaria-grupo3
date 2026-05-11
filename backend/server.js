@@ -6,6 +6,7 @@ import helmet from 'helmet'; // 🛡️ Importação do Helmet
 import mongoSanitize from 'express-mongo-sanitize'; // 🛡️ Importação do Mongo Sanitize
 import xss from 'xss-clean'; // 🛡️ Importação do XSS Clean
 import { setupSwagger } from './config/swagger.js'; // 📄 Importação do Swagger
+import { seedAdmin } from './config/seed.js'; // Importação do Seed para criação do usuário admin
 
 import authRoutes from './routes/authRoutes.js';
 
@@ -27,9 +28,9 @@ app.use(limiterGeral);
 // 2. Limite Estratégico para Autenticação (Prevenção de Brute Force)
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 5, // Apenas 5 tentativas de login/registro por IP a cada 15 min
+    max: 20, // 20 tentativas de login/registro por IP a cada 15 min
     message: {
-        erro: 'Muitas tentativas de login. Por segurança, este IP foi bloqueado por 15 minutos.'
+        erro: 'Muitas tentativas de login/registro. Por segurança, este IP foi bloqueado por 15 minutos.'
     },
     standardHeaders: true, // Retorna informações de limite nos headers
     legacyHeaders: false,
@@ -71,7 +72,10 @@ mongoose.connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 5000, // Tempo de Espera: Se o banco cair, espera no máximo 5 segundos antes de dar erro (não deixa o usuário travado eternamente).
     socketTimeoutMS: 45000, // Timeout de inatividade: Encerra conexões ociosas ou consultas muito lentas após 45 segundos.
 })
-    .then(() => console.log('📦 Conectado ao MongoDB do Portal ELLP com sucesso! (Pool configurado)'))
+    .then(() => {
+        console.log('📦 Conectado ao MongoDB do Portal ELLP com sucesso!');
+        seedAdmin(); // Chama a criação do usuário padrão
+    })
     .catch((erro) => console.error('❌ Erro ao conectar ao MongoDB:', erro));
 
 // Rotas da API

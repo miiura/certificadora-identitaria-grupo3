@@ -14,29 +14,67 @@ const extrairToken = (req) => {
 
 export const registrar = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        // 1. Agora esperamos name e cpf também
+        const { name, email, cpf, password, role } = req.body;
 
-        // Verifica se o usuário já existe
-        const usuarioExistente = await User.findOne({ email });
-        if (usuarioExistente) {
-            return res.status(400).json({ erro: 'E-mail já cadastrado.' });
+        // 2. Validação para garantir que nada venha vazio
+        if (!name || !email || !cpf || !password) {
+            return res.status(400).json({ erro: 'Por favor, preencha nome, email, cpf, senha e cargo.' });
         }
 
-        // Criptografa a senha (o número 10 é o "salt", nível de complexidade do hash)
-        const salt = await bcrypt.genSalt(10);
-        const senhaCriptografada = await bcrypt.hash(password, salt);
+        // 🧹 LIMPEZA DO CPF: Remove tudo que NÃO for número
+        const cpfLimpo = cpf.replace(/\D/g, '');
 
-        // Cria e salva o novo usuário
-        const novoUsuario = new User({
-            email,
-            password: senhaCriptografada
+        // Validar se o CPF tem exatamente 11 dígitos após limpar
+        if (cpfLimpo.length !== 11) {
+            return res.status(400).json({ erro: 'CPF inválido. Deve conter 11 números.' });
+        }
+
+        // 3. Verifica se o E-mail ou o CPF já existem no banco
+        // const usuarioExistente = await User.findOne({ $or: [{ email }, { cpf: cpfLimpo }] });
+        // if (usuarioExistente) {
+        //     return res.status(400).json({ erro: 'E-mail ou CPF já cadastrado no sistema.' });
+        // }
+
+        // 3. Verifica se o E-mail ou o CPF já existem no banco
+        console.log("🕵️ BUSCA INICIADA. Procurando por Email:", email, "ou CPF:", cpfLimpo);
+
+        const usuarioExistente = await User.findOne({
+            $or: [
+                { email: email },
+                { cpf: cpfLimpo }
+            ]
         });
 
-        await novoUsuario.save();
+        console.log("🕵️ RESULTADO DA BUSCA:", usuarioExistente);
 
-        res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso!' });
+        if (usuarioExistente) {
+            return res.status(400).json({ erro: 'E-mail ou CPF já cadastrado no sistema.' });
+        }
+
+        // 4. Criptografa a senha
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // 5. Cria o usuário
+        const novoUsuario = await User.create({
+            name,
+            email,
+            cpf: cpfLimpo,
+            password: hashedPassword,
+            role: role || 'VOLUNTARIO' // Se não enviarem o tipo, vira voluntário por padrão
+        });
+
+        // Remove a senha do objeto de resposta por segurança
+        novoUsuario.password = undefined;
+
+        res.status(201).json({
+            mensagem: 'Usuário criado com sucesso! O voluntário já pode fazer login para completar o perfil.',
+            usuario: novoUsuario
+        });
+
     } catch (erro) {
-        res.status(500).json({ erro: 'Erro interno no servidor ao registrar usuário.' });
+        res.status(500).json({ erro: 'Erro ao cadastrar usuário', detalhes: erro.message });
     }
 };
 
