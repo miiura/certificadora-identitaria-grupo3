@@ -1,0 +1,35 @@
+***COLEÇÃO: Users***
+Coleção que faz a centralização de todos os perfis:
+
+- role._id: ObjectId (PK)
+- name: String (Nome Completo)
+- email: String (Login único)
+- password: String (Hashed)
+- cpf: String (Único)
+- phone: String
+- role: Enum ("ADMIN", "COORDENADOR", "VOLUNTARIO")
+- status: Boolean (Ativo/Desativado)
+- coordinatorData (Opcional - Preenchido se Role for Coordenador/Admin):
+    - department: String
+- volunteerData (Opcional - Preenchido se Role for Voluntário):
+    - birthDate: Date
+    - nationality: String
+    - isUtfprStudent: Boolean
+    - course: String
+    - period: String
+    - ra: String
+    - address: Object (street, city, state, zipCode)
+    - activities: Array of Strings (Vetor de 5 posições)
+    - schedule: Array of Objects
+    - activityIndex: Numbermonths: Array of Numbers (Ex: [1, 2, 5, 12])
+    - projectId: ObjectId (FK para a Coleção Projects)
+
+***COLEÇÃO: Projects (Ações Extensionistas)***
+Armazena os dados da ação que constarão no cabeçalho do termo.
+
+- _id: ObjectId (PK)
+- title: String
+- modality: Enum ("Programa", "Projeto", "Evento", "Curso")
+- startDate: Date
+- endDate: Date
+- coordinatorId: ObjectId (FK para o User que coordena a ação)
