@@ -12,7 +12,6 @@ O sistema visa substituir processos manuais por uma solução digital, centraliz
 ## ✨ Funcionalidades Principais
 
 * **Gestão de Usuários:** Cadastro, edição, inativação lógica dos voluntários e coordenadores do projeto.
-* **Histórico e Relatórios:** Consulta do histórico completo de atividades do voluntário.
 * **Emissão de Documentos:** Geração automática do Termo de Voluntariado em PDF.
 * **Segurança:** Autenticação de usuários via JWT e controle de níveis de acesso (Administrador/Comum).
 
