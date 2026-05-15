@@ -25,7 +25,8 @@ export const seedAdmin = async () => {
             password: hashedPassword,
             role: 'ADMIN'
         });
-
+        
+        //Retorno de criação ou erro caso aconteça algum no processo
         console.log('🌱 Seed concluído: Usuário Admin criado com sucesso! (Email: admin@ellp.com | Senha: admin123)');
 
     } catch (erro) {
