@@ -51,7 +51,7 @@ Para rodar a aplicação, você precisará ter instalado em sua máquina:
 4. **Acesse a aplicação**
    * Backend (API): `http://localhost:3000`
    * Banco de Dados: Porta `27017`
-   * Frontend: *(Em breve)*
+   * Frontend: `http://localhost:5173`
 
 ---
 
