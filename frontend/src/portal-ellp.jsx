@@ -3,7 +3,7 @@ import "./portal-ellp.css";
 import logoEllp from './assets/mascote-ellp.png';
 
 /* ═══════════════════════════════════════════
-   DADOS INICIAIS
+   DADOS INICIAIS ( substituição temporária do MongoDB para visualização )
 ═══════════════════════════════════════════ */
 const MOCK_USERS = [
   { id: 1, role: "admin",     name: "Fabrício Custódio da Silva",  email: "fabricio@utfpr.edu.br", password: "admin123",  cpf: "999.999.999-99", dept: "DEPARTAMENTO-CP", phone: "(43) 99999-9999", avatar: "FC" },
@@ -46,16 +46,17 @@ const C_ORANGE = "#EA580C";
 const C_RED    = "#DC2626";
 const C_MUTED  = "#94A3B8";
 
+/* Geração de ID enquanto está sem MongoDB */
 let _nextId = 20;
 const uid = () => ++_nextId;
-const ini = n => n.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase();
-const AVT_COLORS = ["#1A6FC4","#7C3AED","#0891B2","#16A34A","#C2410C","#BE185D","#0F766E"];
+const ini = n => n.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase(); // deixa o nome só com as iniciais para o ícone de perfil
+const AVT_COLORS = ["#1A6FC4","#7C3AED","#0891B2","#16A34A","#C2410C","#BE185D","#0F766E"]; // cores aleatórias para ícone de perfil
 const avtColor = n => AVT_COLORS[n.charCodeAt(0) % AVT_COLORS.length];
 
 /* ═══════════════════════════════════════════
    COMPONENTES UTILITÁRIOS
 ═══════════════════════════════════════════ */
-function Avt({ name, size=36, fontSize=13 }) {
+function Avt({ name, size=36, fontSize=13 }) { // avatar do usuário
   return (
     <div className="avt" style={{ width:size, height:size, fontSize, background:avtColor(name) }}>
       {ini(name)}
@@ -84,13 +85,13 @@ function Badge({ status }) {
 /* ═══════════════════════════════════════════
    LOGIN
 ═══════════════════════════════════════════ */
-function Login({ onLogin }) {
+function Login({ onLogin }) { // cada useState guarda dados enquanto componente está na tela
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error,    setError]    = useState("");
 
-  const submit = () => {
+  const submit = () => { // validação simples enquanto está sem o backend
     const user = MOCK_USERS.find(u => u.email === email && u.password === password);
     if (!user) { setError("E-mail ou senha incorretos."); return; }
     onLogin(user);
@@ -225,7 +226,7 @@ function SidebarVol({ page, setPage, user, onLogout }) {
 }
 
 /* ═══════════════════════════════════════════
-   SIDEBAR — ADMIN
+   SIDEBAR — ADMIN ( Admin tem acesso a "Voluntários" e "Dados da Ação" )
 ═══════════════════════════════════════════ */
 const ADM_NAV = [
   { key: "inicio",       label: "Início",                  ico: "🏠" },
@@ -274,7 +275,7 @@ function SidebarAdm({ page, setPage, user, onLogout }) {
 }
 
 /* ═══════════════════════════════════════════
-   TOPBAR
+   TOPBAR ( reutilizável para fazer 2 títulos diferentes ao invés de fazer duas topbars diferentes (para voluntário e admin) )
 ═══════════════════════════════════════════ */
 function Topbar({ user, title }) {
   return (
@@ -489,6 +490,7 @@ function GerenciarVols({ user, volunteers, setVolunteers, toast, modalNew, setMo
   const [selected, setSelected] = useState([]);
   const [editVol,  setEditVol]  = useState(null);
 
+   // filtra em tempo real a busca de voluntários listados seja por nome ou cpf
   const filtered = volunteers.filter(v =>
     v.name.toLowerCase().includes(search.toLowerCase()) ||
     v.cpf.includes(search)
@@ -500,24 +502,24 @@ function GerenciarVols({ user, volunteers, setVolunteers, toast, modalNew, setMo
 
   const inativar = id => {
     setVolunteers(vs => vs.map(v => v.id === id ? { ...v, status: v.status === "active" ? "inactive" : "active" } : v));
-    toast("Status do voluntário atualizado", "🔄");
+    toast("Status do voluntário atualizado");
   };
 
   const excluir = id => {
     setVolunteers(vs => vs.filter(v => v.id !== id));
-    toast("Voluntário excluído", "🗑️");
+    toast("Voluntário excluído");
   };
 
   const salvarNovo = data => {
     setVolunteers(vs => [...vs, { ...data, id: uid(), status: "active" }]);
     setModalNew(false);
-    toast("Voluntário cadastrado com sucesso!", "🎉");
+    toast("Voluntário cadastrado com sucesso!");
   };
 
   const salvarEdicao = data => {
     setVolunteers(vs => vs.map(v => v.id === data.id ? { ...v, ...data } : v));
     setEditVol(null);
-    toast("Dados atualizados com sucesso!", "✎");
+    toast("Dados atualizados com sucesso!");
   };
 
   return (
@@ -1041,7 +1043,7 @@ function MinhasAtividades({ user, toast }) {
   const [endYear,    setEndYear]    = useState("2026");
 
   /* Cronograma: atividade × mês (0-11) */
-  const [schedule, setSchedule] = useState({
+  const [schedule, setSchedule] = useState({ // índice da atividade e cada valor é um array de meses marcados
     0: [2,3,4],
     1: [2,3,4],
     2: [2,3,4,5,6],
@@ -1178,7 +1180,7 @@ function MinhasAtividades({ user, toast }) {
 }
 
 /* ═══════════════════════════════════════════
-   GERAR TERMO (voluntário)
+   GERAR TERMO ( voluntário )
 ═══════════════════════════════════════════ */
 function GerarTermo({ user, project, toast }) {
   const incomplete = !user.cpf || !user.birthdate;
@@ -1327,32 +1329,32 @@ function GerarTermo({ user, project, toast }) {
    APP ROOT
 ═══════════════════════════════════════════ */
 export default function App() {
-  const [user,       setUser]       = useState(null);
+  const [user,       setUser]       = useState(null); // por padrão nenhum usuário está logado
   const [page,       setPage]       = useState("inicio");
   const [toasts,     setToasts]     = useState([]);
   const [volunteers, setVolunteers] = useState(MOCK_VOLUNTEERS);
   const [project,    setProject]    = useState(MOCK_PROJECT);
   const [modalNewVol, setModalNewVol] = useState(false);
 
-  const toast = (msg, icon = "✓", type = "default") => {
+  const toast = (msg, icon = "✓", type = "default") => { // adiciona uma mensagem na lista e faz um timer para ela sumir depois de 3 segundos
     const id = Date.now();
     setToasts(t => [...t, { id, msg, icon, type }]);
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
   };
 
-  const logout = () => { setUser(null); setPage("inicio"); };
+  const logout = () => { setUser(null); setPage("inicio"); }; // deixa o usuário null (sem usuário)
 
-  if (!user) {
+  if (!user) { // se não tiver usuário, mostra a tela de login
     return (
       <>
-        <Login onLogin={u => { setUser(u); setPage("inicio"); }} />
+        <Login onLogin={u => { setUser(u); setPage("inicio"); }} /> 
         <Toast toasts={toasts} />
       </>
     );
   }
 
   /* ── VOLUNTÁRIO ── */
-  if (user.role === "volunteer") {
+  if (user.role === "volunteer") { // se o usuário logado tiver a role volunteer, mostra o layout para voluntários
     const volPages = {
       inicio:     <DashVol user={user} setPage={setPage} />,
       atividades: <MinhasAtividades user={user} toast={toast} />,
@@ -1370,11 +1372,11 @@ export default function App() {
     );
   }
 
-  /* ── ADMIN ── */
+  /* ── ADMIN ── ( se não for voluntário ) */
   const salvarNovo = data => {
     setVolunteers(vs => [...vs, { ...data, id: uid(), status: "active" }]);
     setModalNewVol(false);
-    toast("Voluntário cadastrado com sucesso!", "🎉");
+    toast("Voluntário cadastrado com sucesso!");
   };
 
   const admPages = {
