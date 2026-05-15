@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+//Controle de Usuário offline, caso deslogue, deixa o token em uma blacklist para não ser usado, evitando vunerabilidades
 const blacklistSchema = new mongoose.Schema({
     token: {
         type: String,
