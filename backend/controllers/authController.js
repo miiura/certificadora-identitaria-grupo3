@@ -31,12 +31,6 @@ export const registrar = async (req, res) => {
         }
 
         // 3. Verifica se o E-mail ou o CPF já existem no banco
-        // const usuarioExistente = await User.findOne({ $or: [{ email }, { cpf: cpfLimpo }] });
-        // if (usuarioExistente) {
-        //     return res.status(400).json({ erro: 'E-mail ou CPF já cadastrado no sistema.' });
-        // }
-
-        // 3. Verifica se o E-mail ou o CPF já existem no banco
         console.log("🕵️ BUSCA INICIADA. Procurando por Email:", email, "ou CPF:", cpfLimpo);
 
         const usuarioExistente = await User.findOne({
