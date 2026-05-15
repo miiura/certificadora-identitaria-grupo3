@@ -4,7 +4,7 @@ O **Portal ELLP** é uma aplicação web desenvolvida para o gerenciamento e con
 
 O sistema visa substituir processos manuais por uma solução digital, centralizando informações, promovendo eficiência administrativa e garantindo maior agilidade e precisão no preenchimento de termos de voluntariado.
 
-**Acesse o planejamento:** https://docs.google.com/document/d/1IHckKJ0OoK6IOzt1yJcXd-NgYad67nbC-sKFsRNeL1k/edit?usp=sharing
+**Acesse o planejamento:** https://docs.google.com/document/d/1IHckKJ0OoK6IOzt1yJcXd-NgYad67nbC-sKFsRNeL1k/edit?usp=sharing <br>
 **Acesse o protótipo:** https://www.figma.com/design/VGaBBQjMRWEabPjkqaNGZE/Untitled?node-id=0-1&t=SWGdFTGOA1hosOR8-1
 
 ---
@@ -57,11 +57,11 @@ Para rodar a aplicação, você precisará ter instalado em sua máquina:
 
 ## 📁 Estrutura do Repositório
 
-/
-├── /backend          # Código-fonte da API (Node.js/Express)
-├── /frontend         # Código-fonte da Interface (React)
-├── docker-compose.yml # Orquestração dos serviços
-└── README.md         # Documentação do projeto
+/<br>
+├── /backend          # Código-fonte da API (Node.js/Express)<br>
+├── /frontend         # Código-fonte da Interface (React)<br>
+├── docker-compose.yml # Orquestração dos serviços<br>
+└── README.md         # Documentação do projeto<br>
 
 ---
 
