@@ -192,7 +192,9 @@ function SidebarVol({ page, setPage, user, onLogout }) {
   return (
     <aside className="sidebar">
       <div className="sb-brand">
-        <div className="sb-logo-box"><div className="sb-logo-inner" /></div>
+        <div className="sb-logo-box">
+          <img src={logoEllp} alt="ELLP Logo" className="sb-logo-img" />
+        </div>
         <div className="sb-brand-text">
           <div className="sb-brand-text__name">ELLP</div>
           <div className="sb-brand-text__sub">Ensino de Lógica de Programação</div>
@@ -236,7 +238,9 @@ function SidebarAdm({ page, setPage, user, onLogout }) {
   return (
     <aside className="sidebar sidebar--dark">
       <div className="sb-brand">
-        <div className="sb-logo-box sb-logo-box--dark"><div className="sb-logo-inner" /></div>
+        <div className="sb-logo-box sb-logo-box--dark">
+          <img src={logoEllp} alt="ELLP Logo" className="sb-logo-img" />
+        </div>
         <div className="sb-brand-text">
           <div className="sb-brand-text__name sb-brand-text__name--dark">Gestor ELLP</div>
           <div className="sb-brand-text__sub sb-brand-text__sub--dark">Painel Administrativo</div>
