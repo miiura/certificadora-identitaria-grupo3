@@ -41,7 +41,7 @@ export default function AdminApp({
   const pages = {
     inicio:      <DashAdm       user={user} setPage={setPage} volunteers={volunteers} setModalNewVol={setModalNewVol} />,
     voluntarios: <GerenciarVols user={user} volunteers={volunteers} setVolunteers={setVolunteers} toast={toast} modalNew={modalNewVol} setModalNew={setModalNewVol} />,
-    acao:        <DadosAcao     user={user} project={project} setProject={setProject} toast={toast} volunteers={volunteers} />,
+    acao:        <DadosAcao     user={user} setProject={setProject} toast={toast} volunteers={volunteers} />,
     perfil:      <PerfilAdm     user={user} setUser={setUser} toast={toast} />,
   };
 
