@@ -6,17 +6,21 @@ import VolunteerApp from "./pages/volunteer/VolunteerApp";
 import AdminApp     from "./pages/admin/AdminApp";
 import Toast        from "./components/Toast";
 import { useToast } from "./hooks/useToast";
-import { MOCK_VOLUNTEERS, MOCK_PROJECT } from "./data/mockData";
+import { MOCK_PROJECT } from "./data/mockData";
+import { authService } from "./services/authService";
 
 export default function App() {
-  const [user,       setUser]       = useState(null);
-  const [volunteers, setVolunteers] = useState(MOCK_VOLUNTEERS);
+  const [user,       setUser]       = useState(() => authService.getCurrentUser());
+  const [volunteers, setVolunteers] = useState([]);
   const [project,    setProject]    = useState(MOCK_PROJECT);
 
   const { toasts, toast } = useToast();
 
   const handleLogin  = u  => setUser(u);
-  const handleLogout = () => setUser(null);
+  const handleLogout = async () => {
+    await authService.logout();
+    setUser(null);
+  };
 
   /* ── Sem usuário → Login ── */
   if (!user) {

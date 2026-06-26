@@ -11,7 +11,7 @@ const NAV = [
   { key: "perfil",      label: "Meu Perfil",                   ico: "👤" },
 ];
 
-export default function SidebarAdm({ page, setPage, user, onLogout }) {
+export default function SidebarAdm({ page, setPage, user, onLogout, onNewVol }) {
   return (
     <aside className="sidebar sidebar--dark">
 
@@ -47,7 +47,7 @@ export default function SidebarAdm({ page, setPage, user, onLogout }) {
       </nav>
 
       <div className="sb-footer">
-        <button className="btn btn-orange sb-new-vol" onClick={() => setPage("voluntarios")}>
+        <button className="btn btn-orange sb-new-vol" onClick={onNewVol}>
           + Novo Voluntário
         </button>
         <div className="sb-sair sb-sair--dark" onClick={onLogout}>
