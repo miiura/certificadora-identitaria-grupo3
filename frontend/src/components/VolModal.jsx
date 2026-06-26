@@ -147,63 +147,69 @@ export default function VolModal({ mode, initial = {}, onSave, onClose, loading 
             </>
           )}
 
-          {/* ── Dados acadêmicos ─────────────────────────────── */}
-          <div className="section-divider">🎓 Dados Acadêmicos</div>
-
-          <div className="fg2">
-            <div className="fg">
-              <label className="flabel">Vínculo</label>
-              <select
-                className="fselect"
-                value={f.bond || "DISCENTE"}
-                onChange={e => s("bond", e.target.value)}
-              >
-                {["DISCENTE", "DOCENTE", "EGRESSO", "TÉCNICO"].map(b => (
-                  <option key={b}>{b}</option>
-                ))}
-              </select>
-            </div>
-            <div className="fg">
-              <label className="flabel">Curso</label>
-              <select
-                className="fselect"
-                value={f.course || ""}
-                onChange={e => s("course", e.target.value)}
-              >
-                <option value="">Selecione...</option>
-                {COURSES.map(c => <option key={c}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {mode === "edit" && (
+          {/* ── Dados acadêmicos — apenas VOLUNTARIO (ou novo cadastro) ── */}
+          {(mode === "new" || f.role === "VOLUNTARIO") && (
             <>
+              <div className="section-divider">🎓 Dados Acadêmicos</div>
+
               <div className="fg2">
                 <div className="fg">
-                  <label className="flabel">Período</label>
+                  <label className="flabel">Vínculo</label>
                   <select
                     className="fselect"
-                    value={f.period || ""}
-                    onChange={e => s("period", e.target.value)}
+                    value={f.bond || "DISCENTE"}
+                    onChange={e => s("bond", e.target.value)}
                   >
-                    <option value="">Selecione...</option>
-                    {PERIODS.map(p => <option key={p}>{p}</option>)}
+                    {["DISCENTE", "DOCENTE", "EGRESSO", "TÉCNICO"].map(b => (
+                      <option key={b}>{b}</option>
+                    ))}
                   </select>
                 </div>
-                {isUtfpr && (
-                  <div className="fg">
-                    <label className="flabel">RA</label>
-                    <input
-                      className="finput finput--plain"
-                      value={f.ra || ""}
-                      onChange={e => s("ra", e.target.value)}
-                      placeholder="Ex: 2123456"
-                    />
-                  </div>
-                )}
+                <div className="fg">
+                  <label className="flabel">Curso</label>
+                  <select
+                    className="fselect"
+                    value={f.course || ""}
+                    onChange={e => s("course", e.target.value)}
+                  >
+                    <option value="">Selecione...</option>
+                    {COURSES.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
               </div>
 
-              {/* ── Endereço ─────────────────────────────────── */}
+              {mode === "edit" && (
+                <div className="fg2">
+                  <div className="fg">
+                    <label className="flabel">Período</label>
+                    <select
+                      className="fselect"
+                      value={f.period || ""}
+                      onChange={e => s("period", e.target.value)}
+                    >
+                      <option value="">Selecione...</option>
+                      {PERIODS.map(p => <option key={p}>{p}</option>)}
+                    </select>
+                  </div>
+                  {isUtfpr && (
+                    <div className="fg">
+                      <label className="flabel">RA</label>
+                      <input
+                        className="finput finput--plain"
+                        value={f.ra || ""}
+                        onChange={e => s("ra", e.target.value)}
+                        placeholder="Ex: 2123456"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── Endereço — todos os roles, apenas edição ─────── */}
+          {mode === "edit" && (
+            <>
               <div className="section-divider">📍 Endereço</div>
 
               <div className="fg">

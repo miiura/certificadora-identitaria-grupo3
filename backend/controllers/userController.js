@@ -106,25 +106,27 @@ export const atualizarUsuario = async (req, res) => {
             usuario.role = role;
         }
 
-        // Volunteer-specific nested data
-        if (usuario.role === 'VOLUNTARIO') {
-            if (!usuario.volunteerData) usuario.volunteerData = {};
+        // Personal data — applicable to all roles
+        if (!usuario.volunteerData) usuario.volunteerData = {};
 
-            if (birthdate !== undefined) usuario.volunteerData.birthDate = parseDate(birthdate);
-            if (nationality !== undefined) usuario.volunteerData.nationality = nationality;
+        if (birthdate !== undefined) usuario.volunteerData.birthDate = parseDate(birthdate);
+        if (nationality !== undefined) usuario.volunteerData.nationality = nationality;
+
+        if (!usuario.volunteerData.address) usuario.volunteerData.address = {};
+        if (address !== undefined) usuario.volunteerData.address.street = address;
+        if (city !== undefined) usuario.volunteerData.address.city = city;
+        if (state !== undefined) usuario.volunteerData.address.state = state;
+
+        // Academic fields — VOLUNTARIO only
+        if (usuario.role === 'VOLUNTARIO') {
             if (bond !== undefined) usuario.volunteerData.isUtfprStudent = bond === 'DISCENTE' || bond === 'DOCENTE';
             if (course !== undefined) usuario.volunteerData.course = course;
             if (period !== undefined) usuario.volunteerData.period = period;
             if (ra !== undefined) usuario.volunteerData.ra = ra;
-
-            if (!usuario.volunteerData.address) usuario.volunteerData.address = {};
-            if (address !== undefined) usuario.volunteerData.address.street = address;
-            if (city !== undefined) usuario.volunteerData.address.city = city;
-            if (state !== undefined) usuario.volunteerData.address.state = state;
-
-            // Required so Mongoose detects changes to the nested object
-            usuario.markModified('volunteerData');
         }
+
+        // Required so Mongoose detects changes to the nested object
+        usuario.markModified('volunteerData');
 
         await usuario.save();
         usuario.password = undefined;
