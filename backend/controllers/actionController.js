@@ -2,7 +2,7 @@ import Action from '../models/Action.js';
 
 export const obterAction = async (req, res) => {
     try {
-        const action = await Action.findOne().populate('coordinator', '_id name email');
+        const action = await Action.findOne().populate('coordinator', '_id name email cpf phone coordinatorData');
         if (!action) return res.status(404).json({ erro: 'Nenhum registro de ação encontrado.' });
         res.status(200).json({ action });
     } catch (erro) {
@@ -30,7 +30,7 @@ export const atualizarAction = async (req, res) => {
         }
 
         await action.save();
-        await action.populate('coordinator', '_id name email');
+        await action.populate('coordinator', '_id name email cpf phone coordinatorData');
         res.status(200).json({ mensagem: 'Dados da ação atualizados com sucesso.', action });
     } catch (erro) {
         if (erro.name === 'ValidationError') {

@@ -13,6 +13,7 @@ export default function VolModal({ mode, initial = {}, onSave, onClose, loading 
     role: "VOLUNTARIO",
     bond: "DISCENTE", course: "", period: "", ra: "",
     address: "", city: "", state: "",
+    department: "",
     status: "active",
     ...initial,
   });
@@ -24,6 +25,7 @@ export default function VolModal({ mode, initial = {}, onSave, onClose, loading 
       ...p,
       role: newRole,
       ...(newRole !== "VOLUNTARIO" ? { bond: "DISCENTE", course: "", period: "", ra: "" } : {}),
+      ...(newRole !== "COORDENADOR" ? { department: "" } : {}),
     }));
   };
 
@@ -139,6 +141,18 @@ export default function VolModal({ mode, initial = {}, onSave, onClose, loading 
                   <option value="ADMIN">Admin</option>
                 </select>
               </div>
+
+              {f.role === "COORDENADOR" && (
+                <div className="fg">
+                  <label className="flabel">Departamento</label>
+                  <input
+                    className="finput finput--plain"
+                    value={f.department || ""}
+                    onChange={e => s("department", e.target.value)}
+                    placeholder="Ex: DACOM"
+                  />
+                </div>
+              )}
             </>
           )}
 
@@ -167,6 +181,22 @@ export default function VolModal({ mode, initial = {}, onSave, onClose, loading 
                     placeholder="Brasileira"
                   />
                 </div>
+              </div>
+            </>
+          )}
+
+          {/* ── Dados de coordenador — apenas quando role for COORDENADOR ── */}
+          {f.role === "COORDENADOR" && mode === "edit" && (
+            <>
+              <div className="section-divider">🏛 Dados de Coordenador</div>
+              <div className="fg">
+                <label className="flabel">Departamento</label>
+                <input
+                  className="finput finput--plain"
+                  value={f.department || ""}
+                  onChange={e => s("department", e.target.value)}
+                  placeholder="Ex: DACOM"
+                />
               </div>
             </>
           )}

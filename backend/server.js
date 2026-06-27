@@ -11,6 +11,7 @@ import { seedAdmin } from './config/seed.js'; // Importação do Seed para cria�
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import actionRoutes from './routes/actionRoutes.js';
+import termoRoutes from './routes/termoRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -84,6 +85,7 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/action', actionRoutes);
+app.use('/api/termo', termoRoutes);
 
 // Rota de teste
 app.get('/', (req, res) => {

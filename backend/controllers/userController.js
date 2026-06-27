@@ -40,6 +40,7 @@ const formatDate = (date) => {
 // Flattens the nested Mongoose document into the flat shape the frontend expects
 const flattenUser = (usuario) => {
     const vd = usuario.volunteerData || {};
+    const cd = usuario.coordinatorData || {};
     const addr = vd.address || {};
     return {
         id: usuario._id,
@@ -58,6 +59,7 @@ const flattenUser = (usuario) => {
         address: addr.street || '',
         city: addr.city || '',
         state: addr.state || '',
+        department: usuario.role === 'COORDENADOR' ? (cd.department || '') : '',
         activities: vd.activities || [],
         periodStart: vd.periodStart ? formatMonthYear(vd.periodStart) : '',
         periodEnd: vd.periodEnd ? formatMonthYear(vd.periodEnd) : '',
@@ -124,7 +126,7 @@ export const atualizarUsuario = async (req, res) => {
         const usuario = await User.findById(id);
         if (!usuario) return res.status(404).json({ erro: 'Usuário não encontrado.' });
 
-        const { name, phone, email, role, birthdate, nationality, bond, course, period, ra, address, city, state, activities, periodStart, periodEnd, schedule } = req.body;
+        const { name, phone, email, role, birthdate, nationality, bond, course, period, ra, address, city, state, department, activities, periodStart, periodEnd, schedule } = req.body;
 
         // Top-level fields any authenticated owner or admin can update
         if (name !== undefined) usuario.name = name;
@@ -157,6 +159,13 @@ export const atualizarUsuario = async (req, res) => {
             if (periodStart !== undefined) usuario.volunteerData.periodStart = parseMonthYear(periodStart);
             if (periodEnd !== undefined) usuario.volunteerData.periodEnd = parseMonthYear(periodEnd);
             if (schedule !== undefined) usuario.volunteerData.schedule = schedule;
+        }
+
+        // Department field — COORDENADOR only; cleared for any other role
+        if (department !== undefined) {
+            if (!usuario.coordinatorData) usuario.coordinatorData = {};
+            usuario.coordinatorData.department = usuario.role === 'COORDENADOR' ? department : '';
+            usuario.markModified('coordinatorData');
         }
 
         // Required so Mongoose detects changes to the nested object
