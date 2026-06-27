@@ -10,4 +10,9 @@ export const actionService = {
         const response = await api.put('/action', data);
         return response.data.action;
     },
+
+    getCoordinators: async () => {
+        const response = await api.get('/users/coordinators');
+        return response.data.coordenadores;
+    },
 };

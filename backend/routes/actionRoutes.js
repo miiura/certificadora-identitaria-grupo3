@@ -4,7 +4,7 @@ import { verificarToken, verificarPermissao } from '../middlewares/authMiddlewar
 
 const router = express.Router();
 
-router.get('/', verificarToken, verificarPermissao(['ADMIN', 'COORDENADOR']), obterAction);
-router.put('/', verificarToken, verificarPermissao(['ADMIN']), atualizarAction);
+router.get('/', verificarToken, verificarPermissao(['ADMIN', 'COORDENADOR', 'VOLUNTARIO']), obterAction);
+router.put('/', verificarToken, verificarPermissao(['ADMIN', 'COORDENADOR']), atualizarAction);
 
 export default router;

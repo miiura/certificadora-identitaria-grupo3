@@ -59,6 +59,7 @@ export default function PerfilAdm({ user, setUser, toast }) {
         address:     f.address,
         city:        f.city,
         state:       f.state,
+        ...(f.role === 'COORDENADOR' ? { department: f.department } : {}),
       });
 
       setOriginal(updated);
@@ -204,6 +205,21 @@ export default function PerfilAdm({ user, setUser, toast }) {
                     />
                   </div>
                 </div>
+
+                {f?.role === 'COORDENADOR' && (
+                  <>
+                    <div className="section-divider">🏛 Dados de Coordenador</div>
+                    <div className="fg">
+                      <label className="flabel">Departamento</label>
+                      <input
+                        className="finput finput--plain"
+                        value={f.department || ""}
+                        onChange={e => s("department", e.target.value)}
+                        placeholder="Ex: DACOM"
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="section-divider">📍 Endereço</div>
 

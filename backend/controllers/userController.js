@@ -11,6 +11,22 @@ const parseDate = (str) => {
     return new Date(str);
 };
 
+// Formats a Date to "MM/YYYY" (for periodStart / periodEnd)
+const formatMonthYear = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    return `${mm}/${d.getUTCFullYear()}`;
+};
+
+// Parses "MM/YYYY" to a Date (day 1)
+const parseMonthYear = (str) => {
+    if (!str) return null;
+    const [mm, yyyy] = str.split('/');
+    if (!mm || !yyyy) return null;
+    return new Date(`${yyyy}-${mm.padStart(2, '0')}-01`);
+};
+
 // Formats a Date object back to "DD/MM/AAAA"
 const formatDate = (date) => {
     if (!date) return '';
@@ -24,6 +40,7 @@ const formatDate = (date) => {
 // Flattens the nested Mongoose document into the flat shape the frontend expects
 const flattenUser = (usuario) => {
     const vd = usuario.volunteerData || {};
+    const cd = usuario.coordinatorData || {};
     const addr = vd.address || {};
     return {
         id: usuario._id,
@@ -42,7 +59,22 @@ const flattenUser = (usuario) => {
         address: addr.street || '',
         city: addr.city || '',
         state: addr.state || '',
+        department: usuario.role === 'COORDENADOR' ? (cd.department || '') : '',
+        activities: vd.activities || [],
+        periodStart: vd.periodStart ? formatMonthYear(vd.periodStart) : '',
+        periodEnd: vd.periodEnd ? formatMonthYear(vd.periodEnd) : '',
+        schedule: vd.schedule || [],
     };
+};
+
+// GET /api/users/coordinators — list only COORDENADOR users (ADMIN only)
+export const listarCoordenadores = async (req, res) => {
+    try {
+        const coordenadores = await User.find({ role: 'COORDENADOR' }, '_id name email');
+        res.status(200).json({ coordenadores });
+    } catch (erro) {
+        res.status(500).json({ erro: 'Erro ao listar coordenadores.', detalhes: erro.message });
+    }
 };
 
 // GET /api/users — list all users (ADMIN / COORDENADOR only)
@@ -94,7 +126,7 @@ export const atualizarUsuario = async (req, res) => {
         const usuario = await User.findById(id);
         if (!usuario) return res.status(404).json({ erro: 'Usuário não encontrado.' });
 
-        const { name, phone, email, role, birthdate, nationality, bond, course, period, ra, address, city, state } = req.body;
+        const { name, phone, email, role, birthdate, nationality, bond, course, period, ra, address, city, state, department, activities, periodStart, periodEnd, schedule } = req.body;
 
         // Top-level fields any authenticated owner or admin can update
         if (name !== undefined) usuario.name = name;
@@ -117,12 +149,23 @@ export const atualizarUsuario = async (req, res) => {
         if (city !== undefined) usuario.volunteerData.address.city = city;
         if (state !== undefined) usuario.volunteerData.address.state = state;
 
-        // Academic fields — VOLUNTARIO only
+        // Academic and work plan fields — VOLUNTARIO only
         if (usuario.role === 'VOLUNTARIO') {
             if (bond !== undefined) usuario.volunteerData.isUtfprStudent = bond === 'DISCENTE' || bond === 'DOCENTE';
             if (course !== undefined) usuario.volunteerData.course = course;
             if (period !== undefined) usuario.volunteerData.period = period;
             if (ra !== undefined) usuario.volunteerData.ra = ra;
+            if (activities !== undefined) usuario.volunteerData.activities = activities;
+            if (periodStart !== undefined) usuario.volunteerData.periodStart = parseMonthYear(periodStart);
+            if (periodEnd !== undefined) usuario.volunteerData.periodEnd = parseMonthYear(periodEnd);
+            if (schedule !== undefined) usuario.volunteerData.schedule = schedule;
+        }
+
+        // Department field — COORDENADOR only; cleared for any other role
+        if (department !== undefined) {
+            if (!usuario.coordinatorData) usuario.coordinatorData = {};
+            usuario.coordinatorData.department = usuario.role === 'COORDENADOR' ? department : '';
+            usuario.markModified('coordinatorData');
         }
 
         // Required so Mongoose detects changes to the nested object

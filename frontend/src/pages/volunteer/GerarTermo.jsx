@@ -1,131 +1,241 @@
 /* ═══════════════════════════════════════
-   Geração de termo de voluntariado 
+   Geração de termo de voluntariado
 ═══════════════════════════════════════ */
+import { useState, useEffect } from "react";
 import logoEllp from "../../assets/mascote-ellp.png";
 import Topbar from "../../components/Topbar";
-import { ACTIVITIES_EXAMPLE } from "../../data/mockData";
+import { userService } from "../../services/userService";
+import { actionService } from "../../services/actionService";
 
-export default function GerarTermo({ user, project, toast }) {
-  const incomplete = !user.cpf || !user.birthdate;
+const MONTH_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+// Formats "MM/YYYY" → "Mmm/YYYY"
+const fmtPeriod = (str) => {
+  if (!str) return "—";
+  const [mm, yyyy] = str.split("/");
+  const m = parseInt(mm, 10);
+  return `${MONTH_SHORT[m - 1] || mm}/${yyyy}`;
+};
+
+// Returns REQUIRED_FIELDS that are missing in the profile
+const REQUIRED = ["name", "cpf", "birthdate", "phone", "course", "ra", "address"];
+const missingFields = (vol) => REQUIRED.filter(k => !vol[k]);
+
+export default function GerarTermo({ user, toast }) {
+  const [vol,    setVol]    = useState(null);
+  const [action, setAction] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+
   const termDate = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit", month: "long", year: "numeric",
   });
+
+  // ── Fetch volunteer profile + action data ──────────────────
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      userService.getProfile(user.id),
+      actionService.getAction(),
+    ])
+      .then(([volData, actionData]) => {
+        if (cancelled) return;
+        setVol(volData);
+        setAction(actionData);
+      })
+      .catch(() => {
+        if (!cancelled) toast("Não foi possível carregar os dados do termo.", "⚠️");
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [user.id]);
+
+  // ── Download ───────────────────────────────────────────────
+  const baixarTermo = async () => {
+    setDownloading(true);
+    try {
+      await userService.downloadTermo();
+      toast("Termo gerado com sucesso!", "📄");
+    } catch {
+      toast("Erro ao gerar o termo. Verifique seus dados.", "❌");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // ── Loading state ──────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="page-content">
+        <Topbar user={user} title="Gerar Termo de Voluntariado" />
+        <div className="content" style={{ textAlign: "center", paddingTop: "3rem" }}>
+          Carregando dados do termo…
+        </div>
+      </div>
+    );
+  }
+
+  const missing  = vol ? missingFields(vol) : REQUIRED;
+  const coord    = action?.coordinator;
+  const activities = (vol?.activities || []).filter(a => a?.trim());
 
   return (
     <div className="page-content">
       <Topbar user={user} title="Gerar Termo de Voluntariado" />
       <div className="content">
 
-        {incomplete && (
+        {missing.length > 0 && (
           <div className="alert alert--warning">
             <span>⚠</span>
             <div>
               <strong>Campos Pendentes</strong>
               <div>
-                Seu perfil ainda possui informações incompletas (CPF e Data de Nascimento).
+                Seu perfil ainda possui informações incompletas ({missing.join(", ")}).
                 Complete os dados no seu perfil para que o termo seja gerado com validade jurídica.
               </div>
             </div>
-            <button className="btn btn-dark btn-sm">Corrigir Agora</button>
           </div>
         )}
 
         <div className="termo-layout">
 
-          {/* ── Preview do documento ── */}
+          {/* ── Preview do documento ──────────────────────── */}
           <div className="termo-doc card">
             <div className="termo-doc__inner">
-              <h2 className="termo-title">TERMO DE ADESÃO AO SERVIÇO VOLUNTÁRIO</h2>
-              <p className="termo-subtitle">PROJETO ELLP — ENSINO LÚDICO DE LÓGICA E PROGRAMAÇÃO</p>
+              <h2 className="termo-title">TERMO DE ADESÃO PARA VOLUNTÁRIO(A)</h2>
+              <p className="termo-subtitle">
+                Universidade Tecnológica Federal do Paraná — UTFPR · Campus: Cornélio Procópio
+              </p>
 
+              {/* 1. Dados da Ação */}
               <div className="termo-section">
-                <div className="termo-section__title">1. DADOS DO PROJETO</div>
-                <div className="termo-project-row">
-                  <div>
-                    <span className="termo-lbl">Título:</span><br />
-                    <span className="termo-val">{project.title}</span>
-                  </div>
-                  <div>
-                    <span className="termo-lbl">Modalidade:</span><br />
-                    <span className="termo-val">Projeto de Extensão</span>
-                  </div>
-                  <div>
-                    <span className="termo-lbl">Vigência:</span><br />
-                    <span className="termo-val">
-                      {project.startMonth?.slice(0, 3)}/{project.startYear} –{" "}
-                      {project.endMonth?.slice(0, 3)}/{project.endYear}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="termo-section">
-                <div className="termo-section__title">2. DADOS DO VOLUNTÁRIO</div>
+                <div className="termo-section__title">Dados da Ação</div>
                 <table className="termo-table">
                   <tbody>
-                    <tr><td className="termo-table__lbl">Nome Completo</td><td>{user.name}</td></tr>
                     <tr>
-                      <td className="termo-table__lbl">CPF / RG</td>
-                      <td className={!user.cpf ? "termo-missing" : ""}>{user.cpf || "Não informado"}</td>
+                      <td className="termo-table__lbl">Título da ação</td>
+                      <td>{action?.title || "—"}</td>
                     </tr>
-                    <tr><td className="termo-table__lbl">Curso / Matrícula</td><td>{user.course ? `${user.course} – ${user.ra || ""}` : "—"}</td></tr>
-                    <tr><td className="termo-table__lbl">Endereço</td><td>{user.address ? `${user.address}, ${user.city}` : "—"}</td></tr>
+                    <tr>
+                      <td className="termo-table__lbl">Modalidade</td>
+                      <td>{action?.modality || "—"}</td>
+                    </tr>
+                    <tr>
+                      <td className="termo-table__lbl">Vigência</td>
+                      <td>
+                        {fmtPeriod(action?.validity?.start)} – {fmtPeriod(action?.validity?.end)}
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
 
+              {/* 2. Dados da Coordenação */}
               <div className="termo-section">
-                <div className="termo-section__title">3. SÍNTESE DAS ATIVIDADES</div>
-                {ACTIVITIES_EXAMPLE.filter(a => a).map((a, i) => (
+                <div className="termo-section__title">Dados da Coordenação da Ação</div>
+                <table className="termo-table">
+                  <tbody>
+                    <tr><td className="termo-table__lbl">Nome</td><td>{coord?.name || "—"}</td></tr>
+                    <tr><td className="termo-table__lbl">CPF</td><td>{coord?.cpf || "—"}</td></tr>
+                    <tr><td className="termo-table__lbl">Departamento</td><td>{coord?.coordinatorData?.department || "—"}</td></tr>
+                    <tr><td className="termo-table__lbl">Telefone</td><td>{coord?.phone || "—"}</td></tr>
+                    <tr><td className="termo-table__lbl">E-mail</td><td>{coord?.email || "—"}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 3. Dados do Voluntário */}
+              <div className="termo-section">
+                <div className="termo-section__title">Dados do(a) Voluntário(a)</div>
+                <table className="termo-table">
+                  <tbody>
+                    <tr><td className="termo-table__lbl">Nome Completo</td><td>{vol?.name || "—"}</td></tr>
+                    <tr><td className="termo-table__lbl">Data de Nascimento</td><td>{vol?.birthdate || "—"}</td></tr>
+                    <tr>
+                      <td className="termo-table__lbl">CPF</td>
+                      <td className={!vol?.cpf ? "termo-missing" : ""}>{vol?.cpf || "Não informado"}</td>
+                    </tr>
+                    <tr><td className="termo-table__lbl">Curso</td><td>{vol?.course || "—"}</td></tr>
+                    <tr><td className="termo-table__lbl">Período</td><td>{vol?.period || "—"}</td></tr>
+                    <tr><td className="termo-table__lbl">RA</td><td>{vol?.ra || "—"}</td></tr>
+                    <tr>
+                      <td className="termo-table__lbl">Endereço</td>
+                      <td>{[vol?.address, vol?.city, vol?.state].filter(Boolean).join(", ") || "—"}</td>
+                    </tr>
+                    <tr><td className="termo-table__lbl">Telefone</td><td>{vol?.phone || "—"}</td></tr>
+                    <tr><td className="termo-table__lbl">E-mail</td><td>{vol?.email || "—"}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 4. Síntese das atividades */}
+              <div className="termo-section">
+                <div className="termo-section__title">Síntese das Atividades</div>
+                {activities.length === 0 ? (
+                  <p className="termo-missing">Nenhuma atividade cadastrada.</p>
+                ) : activities.map((a, i) => (
                   <div key={i} className="termo-activity">• {a};</div>
                 ))}
               </div>
 
+              {/* 5. Cronograma */}
               <div className="termo-section">
-                <div className="termo-section__title">4. PLANO DE TRABALHO E CARGA HORÁRIA</div>
-                <table className="termo-table termo-table--schedule">
-                  <thead>
-                    <tr><th>Dia da Semana</th><th>Manhã</th><th>Tarde</th><th>Noite</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Terça-feira</td><td>-</td><td>14:00 – 18:00</td><td>-</td></tr>
-                    <tr><td>Quinta-feira</td><td>-</td><td>14:00 – 18:00</td><td>-</td></tr>
-                    <tr className="termo-table__total">
-                      <td colSpan={4} style={{ textAlign: "right" }}>Total Semanal: 08 Horas</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="termo-section">
-                <div className="termo-section__title">5. COORDENAÇÃO DO PROJETO</div>
-                <div className="termo-coord">
-                  <div>Coordenador Responsável: Fabrício Custódio da Silva</div>
-                  <div>Departamento: Departamento de Análise e Desenvolvimento de Sistemas</div>
-                  <div>Instituição: Centro de Ensino Superior de Cornélio Procópio</div>
+                <div className="termo-section__title">Cronograma das Atividades</div>
+                <div className="termo-project-row" style={{ marginBottom: 8 }}>
+                  <div>
+                    <span className="termo-lbl">Início do Período:</span><br />
+                    <span className="termo-val">{fmtPeriod(vol?.periodStart)}</span>
+                  </div>
+                  <div>
+                    <span className="termo-lbl">Fim do Período:</span><br />
+                    <span className="termo-val">{fmtPeriod(vol?.periodEnd)}</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="termo-assinaturas">
-                <div className="termo-ass">
-                  <div className="termo-ass__line" />
-                  <div className="termo-ass__name">{user.name}</div>
-                  <div className="termo-ass__role">VOLUNTÁRIO</div>
-                </div>
-                <div className="termo-ass">
-                  <div className="termo-ass__line" />
-                  <div className="termo-ass__name">Fabrício Custódio da Silva</div>
-                  <div className="termo-ass__role">COORDENADOR DO PROJETO</div>
-                </div>
+                {(vol?.schedule?.length > 0 && activities.length > 0) ? (
+                  <div className="crono-table-wrap" style={{ marginTop: 8 }}>
+                    <table className="crono-table">
+                      <thead>
+                        <tr>
+                          <th className="crono-th--act">Atividade</th>
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <th key={i} className="crono-th--month">{i + 1}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activities.slice(0, 4).map((_, ri) => {
+                          const entry = vol.schedule.find(s => s.activityIndex === ri);
+                          const months = new Set(entry?.months || []);
+                          return (
+                            <tr key={ri}>
+                              <td className="crono-td--act">Ativ. {ri + 1}</td>
+                              {Array.from({ length: 12 }, (_, ci) => (
+                                <td key={ci} className="crono-td--circle">
+                                  {months.has(ci)
+                                    ? <span style={{ fontWeight: "bold" }}>X</span>
+                                    : null}
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
+                    Cronograma não preenchido.
+                  </p>
+                )}
               </div>
 
               <div className="termo-footer">
-                Documento gerado eletronicamente em {termDate}.
+                Local: Cornélio Procópio — {termDate}
               </div>
             </div>
           </div>
 
-          {/* ── Ações laterais ── */}
+          {/* ── Ações laterais ───────────────────────────── */}
           <div className="termo-actions">
 
             <div className="card termo-actions-card">
@@ -134,21 +244,19 @@ export default function GerarTermo({ user, project, toast }) {
               </div>
               <div className="card-body">
                 <p className="termo-actions__desc">
-                  Revise todos os dados antes de realizar o download. O arquivo PDF será
-                  gerado com as informações atuais do sistema.
+                  Revise todos os dados antes de realizar o download. O arquivo DOCX será
+                  gerado a partir do modelo oficial da UTFPR com as suas informações atuais.
                 </p>
                 <button
                   className="btn btn-orange btn-block"
-                  onClick={() => toast("PDF sendo gerado...", "📄")}
+                  onClick={baixarTermo}
+                  disabled={downloading}
                 >
-                  ⬇ Baixar PDF
-                </button>
-                <button className="btn btn-outline btn-block" style={{ marginTop: 8 }}>
-                  ✏ Editar Perfil
+                  {downloading ? "Gerando…" : "⬇ Baixar Termo (.docx)"}
                 </button>
                 <div className="termo-actions__tags">
-                  <span>🏛 Modelo Padrão Institucional</span>
-                  <span>✍ Assinatura Digital Integrada</span>
+                  <span>🏛 Modelo Oficial UTFPR</span>
+                  <span>📝 Preenchimento Automático</span>
                 </div>
               </div>
             </div>
@@ -161,8 +269,8 @@ export default function GerarTermo({ user, project, toast }) {
                 <div>
                   <div className="termo-tip__title">Dica do ELLP!</div>
                   <p className="termo-tip__text">
-                    Lembre-se de anexar o termo assinado na seção "Meus Documentos"
-                    para validação das suas horas.
+                    Após baixar o documento, assine e entregue uma via à DIREC para validação
+                    das suas horas de voluntariado.
                   </p>
                 </div>
               </div>
@@ -173,8 +281,12 @@ export default function GerarTermo({ user, project, toast }) {
 
         {/* Botão fixo no rodapé */}
         <div className="termo-bottom-btn">
-          <button className="btn btn-orange" onClick={() => toast("Termo gerado!", "📄")}>
-            📄 Gerar Termo
+          <button
+            className="btn btn-orange"
+            onClick={baixarTermo}
+            disabled={downloading}
+          >
+            📄 {downloading ? "Gerando…" : "Gerar Termo"}
           </button>
         </div>
 

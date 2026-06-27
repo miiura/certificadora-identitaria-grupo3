@@ -7,33 +7,44 @@ import Topbar  from "../../components/Topbar";
 import Badge   from "../../components/Badge";
 import { actionService } from "../../services/actionService";
 
-const EMPTY = { title: "", modality: "Projeto", validity: { start: "", end: "" } };
+const EMPTY = { title: "", modality: "Projeto", validity: { start: "", end: "" }, coordinator: "" };
+
+// Extrai o _id do coordenador, independente se veio populado ou como string
+const extractCoordinatorId = (c) => (c && typeof c === "object" ? c._id : c) || "";
 
 export default function DadosAcao({ user, setProject, toast, volunteers }) {
-  const [f, setF]           = useState(EMPTY);
+  const [f, setF]               = useState(EMPTY);
   const [original, setOriginal] = useState(EMPTY);
   const [loading, setLoading]   = useState(true);
   const [saving, setSaving]     = useState(false);
+  const [coordinators, setCoordinators] = useState([]);
 
   const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   const ativos = volunteers.filter(v => v.status === "active").length;
 
-  // ── Fetch on mount ───────────────────────────────────────────
+  // ── Fetch action + coordinators on mount ─────────────────────
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    actionService.getAction()
-      .then(data => {
+
+    Promise.all([
+      actionService.getAction(),
+      actionService.getCoordinators(),
+    ])
+      .then(([action, coords]) => {
         if (cancelled) return;
-        setF(data);
-        setOriginal(data);
+        const normalized = { ...action, coordinator: extractCoordinatorId(action.coordinator) };
+        setF(normalized);
+        setOriginal(normalized);
+        setCoordinators(coords);
       })
       .catch(() => {
         if (cancelled) return;
         toast("Não foi possível carregar os dados da ação.", "⚠️");
       })
       .finally(() => { if (!cancelled) setLoading(false); });
+
     return () => { cancelled = true; };
   }, []);
 
@@ -51,12 +62,14 @@ export default function DadosAcao({ user, setProject, toast, volunteers }) {
     setSaving(true);
     try {
       const updated = await actionService.updateAction({
-        title:    f.title,
-        modality: f.modality,
-        validity: f.validity,
+        title:       f.title,
+        modality:    f.modality,
+        validity:    f.validity,
+        coordinator: f.coordinator || null,
       });
-      setOriginal(updated);
-      setF(updated);
+      const normalized = { ...updated, coordinator: extractCoordinatorId(updated.coordinator) };
+      setOriginal(normalized);
+      setF(normalized);
       if (setProject) setProject(updated);
       toast("Dados da ação salvos com sucesso!", "✅");
     } catch (err) {
@@ -147,6 +160,20 @@ export default function DadosAcao({ user, setProject, toast, volunteers }) {
                     maxLength={7}
                   />
                 </div>
+              </div>
+
+              <div className="fg">
+                <label className="flabel">Coordenador Responsável</label>
+                <select
+                  className="fselect"
+                  value={f.coordinator || ""}
+                  onChange={e => s("coordinator", e.target.value)}
+                >
+                  <option value="">Selecione um coordenador...</option>
+                  {coordinators.map(c => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="modal-foot" style={{ borderTop: "none", paddingLeft: 0 }}>

@@ -10,13 +10,24 @@ export default function VolModal({ mode, initial = {}, onSave, onClose, loading 
   const [f, setF] = useState({
     name: "", email: "", cpf: "", password: "",
     phone: "", birthdate: "", nationality: "",
+    role: "VOLUNTARIO",
     bond: "DISCENTE", course: "", period: "", ra: "",
     address: "", city: "", state: "",
+    department: "",
     status: "active",
     ...initial,
   });
 
   const s = (k, v) => setF(p => ({ ...p, [k]: v }));
+
+  const handleRoleChange = (newRole) => {
+    setF(p => ({
+      ...p,
+      role: newRole,
+      ...(newRole !== "VOLUNTARIO" ? { bond: "DISCENTE", course: "", period: "", ra: "" } : {}),
+      ...(newRole !== "COORDENADOR" ? { department: "" } : {}),
+    }));
+  };
 
   const isUtfpr = f.bond === "DISCENTE" || f.bond === "DOCENTE";
 
@@ -41,12 +52,12 @@ export default function VolModal({ mode, initial = {}, onSave, onClose, loading 
         <div className="modal-head">
           <div>
             <div className="modal-title">
-              {mode === "new" ? "Novo Voluntário" : "Editar Voluntário"}
+              {mode === "new" ? "Novo Usuário" : "Editar Usuário"}
             </div>
             <div className="modal-sub">
               {mode === "new"
                 ? "Preencha os dados do novo participante"
-                : "Atualize os dados do voluntário"}
+                : "Atualize os dados do usuário"}
             </div>
           </div>
           <button className="btn-x" onClick={onClose}>×</button>
@@ -106,16 +117,43 @@ export default function VolModal({ mode, initial = {}, onSave, onClose, loading 
           </div>
 
           {mode === "new" && (
-            <div className="fg">
-              <label className="flabel">Senha inicial</label>
-              <input
-                className="finput finput--plain"
-                type="password"
-                value={f.password || ""}
-                onChange={e => s("password", e.target.value)}
-                placeholder="Deixe em branco para usar o CPF como senha"
-              />
-            </div>
+            <>
+              <div className="fg">
+                <label className="flabel">Senha inicial</label>
+                <input
+                  className="finput finput--plain"
+                  type="password"
+                  value={f.password || ""}
+                  onChange={e => s("password", e.target.value)}
+                  placeholder="Deixe em branco para usar o CPF como senha"
+                />
+              </div>
+
+              <div className="fg">
+                <label className="flabel">Perfil</label>
+                <select
+                  className="fselect"
+                  value={f.role || "VOLUNTARIO"}
+                  onChange={e => handleRoleChange(e.target.value)}
+                >
+                  <option value="VOLUNTARIO">Voluntário</option>
+                  <option value="COORDENADOR">Coordenador</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+
+              {f.role === "COORDENADOR" && (
+                <div className="fg">
+                  <label className="flabel">Departamento</label>
+                  <input
+                    className="finput finput--plain"
+                    value={f.department || ""}
+                    onChange={e => s("department", e.target.value)}
+                    placeholder="Ex: DACOM"
+                  />
+                </div>
+              )}
+            </>
           )}
 
           {/* ── Dados pessoais (edit only) ───────────────────── */}
@@ -147,8 +185,24 @@ export default function VolModal({ mode, initial = {}, onSave, onClose, loading 
             </>
           )}
 
-          {/* ── Dados acadêmicos — apenas VOLUNTARIO (ou novo cadastro) ── */}
-          {(mode === "new" || f.role === "VOLUNTARIO") && (
+          {/* ── Dados de coordenador — apenas quando role for COORDENADOR ── */}
+          {f.role === "COORDENADOR" && mode === "edit" && (
+            <>
+              <div className="section-divider">🏛 Dados de Coordenador</div>
+              <div className="fg">
+                <label className="flabel">Departamento</label>
+                <input
+                  className="finput finput--plain"
+                  value={f.department || ""}
+                  onChange={e => s("department", e.target.value)}
+                  placeholder="Ex: DACOM"
+                />
+              </div>
+            </>
+          )}
+
+          {/* ── Dados acadêmicos — apenas quando role for VOLUNTARIO ── */}
+          {f.role === "VOLUNTARIO" && (
             <>
               <div className="section-divider">🎓 Dados Acadêmicos</div>
 

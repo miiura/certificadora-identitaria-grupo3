@@ -48,7 +48,7 @@ export default function SidebarAdm({ page, setPage, user, onLogout, onNewVol }) 
 
       <div className="sb-footer">
         <button className="btn btn-orange sb-new-vol" onClick={onNewVol}>
-          + Novo Voluntário
+          + Novo Usuário
         </button>
         <div className="sb-sair sb-sair--dark" onClick={onLogout}>
           <span>↪</span> Sair

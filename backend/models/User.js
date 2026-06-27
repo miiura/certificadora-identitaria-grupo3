@@ -31,10 +31,9 @@ const userSchema = new mongoose.Schema({
             zipCode: String
         },
 
-        // Array de Strings com a descrição de cada atividade
         activities: [{ type: String }],
-
-        // Array de Objetos representando o cruzamento Atividade x Meses
+        periodStart: Date,
+        periodEnd: Date,
         schedule: [{
             activityIndex: { type: Number },
             months: [{ type: Number }]

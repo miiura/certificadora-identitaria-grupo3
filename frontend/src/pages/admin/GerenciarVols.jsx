@@ -101,6 +101,7 @@ export default function GerenciarVols({
         address:     data.address,
         city:        data.city,
         state:       data.state,
+        department:  data.department,
       });
       setVolunteers(vs => vs.map(v => v.id === updated.id ? { ...v, ...updated } : v));
       setEditVol(null);
