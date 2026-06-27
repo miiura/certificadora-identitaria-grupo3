@@ -1,5 +1,5 @@
 import express from 'express';
-import { listarUsuarios, obterUsuario, atualizarUsuario, excluirUsuario } from '../controllers/userController.js';
+import { listarUsuarios, listarCoordenadores, obterUsuario, atualizarUsuario, excluirUsuario } from '../controllers/userController.js';
 import { verificarToken, verificarPermissao } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -19,6 +19,7 @@ const router = express.Router();
  *              description: Acesso negado.
  */
 router.get('/', verificarToken, verificarPermissao(['ADMIN', 'COORDENADOR']), listarUsuarios);
+router.get('/coordinators', verificarToken, verificarPermissao(['ADMIN']), listarCoordenadores);
 
 /**
  * @swagger

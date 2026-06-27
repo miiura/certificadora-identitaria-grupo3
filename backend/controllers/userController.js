@@ -45,6 +45,16 @@ const flattenUser = (usuario) => {
     };
 };
 
+// GET /api/users/coordinators — list only COORDENADOR users (ADMIN only)
+export const listarCoordenadores = async (req, res) => {
+    try {
+        const coordenadores = await User.find({ role: 'COORDENADOR' }, '_id name email');
+        res.status(200).json({ coordenadores });
+    } catch (erro) {
+        res.status(500).json({ erro: 'Erro ao listar coordenadores.', detalhes: erro.message });
+    }
+};
+
 // GET /api/users — list all users (ADMIN / COORDENADOR only)
 export const listarUsuarios = async (req, res) => {
     try {

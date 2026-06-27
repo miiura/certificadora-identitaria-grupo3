@@ -11,6 +11,11 @@ const toYYYYMM = (str) => {
 };
 
 const actionSchema = new mongoose.Schema({
+    coordinator: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+    },
     title: {
         type: String,
         required: [true, 'O título da ação é obrigatório.'],
