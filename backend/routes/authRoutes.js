@@ -75,11 +75,11 @@ router.post(
  *                          email:
  *                              type: string
  *                              format: email
- *                              example: voluntario@ellp.com
+ *                              example: admin@ellp.com
  *                          password:
  *                              type: string
  *                              format: password
- *                              example: senha123
+ *                              example: admin
  *      responses:
  *          200:
  *              description: Login bem-sucedido. Retorna o token.

@@ -3,18 +3,28 @@ Login da plataforma
 ═══════════════════════════════════════ */
 import { useState } from "react";
 import logoEllp from "../assets/mascote-ellp.png";
-import { MOCK_USERS } from "../data/mockData";
+import { authService } from "../services/authService";
 
 export default function Login({ onLogin }) {
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error,    setError]    = useState("");
+  const [loading,  setLoading]  = useState(false);
 
-  const submit = () => {
-    const user = MOCK_USERS.find(u => u.email === email && u.password === password);
-    if (!user) { setError("E-mail ou senha incorretos."); return; }
-    onLogin(user);
+  const submit = async () => {
+    if (!email || !password) { setError("Preencha e-mail e senha."); return; }
+    setLoading(true);
+    setError("");
+    try {
+      const user = await authService.login(email, password);
+      onLogin(user);
+    } catch (err) {
+      const msg = err.response?.data?.erro || "Erro ao conectar ao servidor.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -88,7 +98,9 @@ export default function Login({ onLogin }) {
             Lembrar de mim
           </label>
 
-          <button className="login-btn" onClick={submit}>Entrar →</button>
+          <button className="login-btn" onClick={submit} disabled={loading}>
+            {loading ? "Entrando…" : "Entrar →"}
+          </button>
 
           <p className="login-signup">
             Não possui uma conta?{" "}

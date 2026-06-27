@@ -9,6 +9,8 @@ import { setupSwagger } from './config/swagger.js'; // 📄 Importação do Swag
 import { seedAdmin } from './config/seed.js'; // Importação do Seed para criação do usuário admin
 
 import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import actionRoutes from './routes/actionRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 
 // 1. Limite Global (Prevenção de ataques DoS genéricos)
 const limiterGeral = rateLimit({
-    windowMs: 15 * 60 * 1000, // Janela de 15 minutos
+    windowMs: 1 * 60 * 1000, // Janela de 1 minuto
     max: 100, // Limita cada IP a 100 requisições por janela
     message: 'Muitas requisições vindas deste IP, tente novamente mais tarde.'
 });
@@ -27,10 +29,10 @@ app.use(limiterGeral);
 
 // 2. Limite Estratégico para Autenticação (Prevenção de Brute Force)
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 20, // 20 tentativas de login/registro por IP a cada 15 min
+    windowMs: 1 * 60 * 1000, // 1 minuto
+    max: 20, // 20 tentativas de login/registro por IP a cada 1 min
     message: {
-        erro: 'Muitas tentativas de login/registro. Por segurança, este IP foi bloqueado por 15 minutos.'
+        erro: 'Muitas tentativas de login/registro. Por segurança, este IP foi bloqueado por 1 minuto.'
     },
     standardHeaders: true, // Retorna informações de limite nos headers
     legacyHeaders: false,
@@ -80,6 +82,8 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Rotas da API
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/action', actionRoutes);
 
 // Rota de teste
 app.get('/', (req, res) => {

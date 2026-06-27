@@ -1,18 +1,100 @@
 /* ═══════════════════════════════════════
    Perfil do admin
 ═══════════════════════════════════════ */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
 import Avt    from "../../components/Avt";
+import { userService } from "../../services/userService";
 
 export default function PerfilAdm({ user, setUser, toast }) {
-  const [f, setF] = useState({ ...user });
+  const [f, setF]               = useState(null);
+  const [original, setOriginal] = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+
   const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 
-  const salvar = () => {
-    setUser({ ...f });
-    toast("Alterações salvas com sucesso!", "✅");
+  // ── Fetch full profile on mount ──────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+
+    userService.getProfile(user.id)
+      .then(data => {
+        if (cancelled) return;
+        setF(data);
+        setOriginal(data);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        const fallback = { ...user };
+        setF(fallback);
+        setOriginal(fallback);
+        toast("Não foi possível carregar o perfil completo.", "⚠️");
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [user.id]);
+
+  // ── Birthdate auto-mask: "01012000" → "01/01/2000" ──────────
+  const handleBirthdate = (raw) => {
+    const digits = raw.replace(/\D/g, '').slice(0, 8);
+    let masked = digits;
+    if (digits.length > 4) masked = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+    else if (digits.length > 2) masked = digits.slice(0, 2) + '/' + digits.slice(2);
+    s("birthdate", masked);
   };
+
+  // ── Save changes ─────────────────────────────────────────────
+  const salvar = async () => {
+    if (!f) return;
+    setSaving(true);
+    try {
+      const updated = await userService.updateProfile(user.id, {
+        name:        f.name,
+        phone:       f.phone,
+        birthdate:   f.birthdate,
+        nationality: f.nationality,
+        address:     f.address,
+        city:        f.city,
+        state:       f.state,
+      });
+
+      setOriginal(updated);
+      setF(updated);
+
+      setUser(prev => ({
+        ...prev,
+        name: updated.name,
+        avatar: updated.name
+          .split(" ")
+          .map(w => w[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase(),
+      }));
+
+      toast("Perfil atualizado com sucesso!", "✅");
+    } catch (err) {
+      const msg = err.response?.data?.erro || "Erro ao salvar alterações.";
+      toast(msg, "❌");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Loading state ─────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="page-content">
+        <Topbar user={user} title="Meu Perfil" />
+        <div className="content" style={{ textAlign: "center", paddingTop: "3rem" }}>
+          Carregando perfil…
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-content">
@@ -27,11 +109,11 @@ export default function PerfilAdm({ user, setUser, toast }) {
 
         <div className="perfil-adm-grid">
 
-          {/* Card de avatar */}
+          {/* ── Card de avatar ── */}
           <div className="card perfil-adm-avatar-card">
-            <Avt name={f.name} size={80} fontSize={28} />
-            <div className="perfil-adm-name">{f.name}</div>
-            <div className="perfil-adm-role">Coordenador Extensionista</div>
+            <Avt name={f.name || "?"} size={80} fontSize={28} />
+            <div className="perfil-adm-name">{f.name || "—"}</div>
+            <div className="perfil-adm-role">Administrador</div>
             <span className="perfil-adm-verified">✓ Perfil Verificado</span>
 
             <div className="perfil-adm-tip">
@@ -45,14 +127,14 @@ export default function PerfilAdm({ user, setUser, toast }) {
             </div>
           </div>
 
-          {/* Formulário */}
+          {/* ── Formulário ── */}
           <div>
             <div className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">Dados de Coordenação</div>
+                  <div className="card-title">👤 Dados do Administrador</div>
                   <div className="card-sub">
-                    Gerencie suas informações profissionais e de contato departamental.
+                    Gerencie suas informações pessoais e de contato.
                   </div>
                 </div>
               </div>
@@ -61,33 +143,114 @@ export default function PerfilAdm({ user, setUser, toast }) {
                 <div className="fg2">
                   <div className="fg">
                     <label className="flabel">Nome Completo</label>
-                    <input className="finput finput--plain" value={f.name} onChange={e => s("name", e.target.value)} />
+                    <input
+                      className="finput finput--plain"
+                      value={f.name || ""}
+                      onChange={e => s("name", e.target.value)}
+                    />
                   </div>
                   <div className="fg">
-                    <label className="flabel">CPF</label>
-                    <input className="finput finput--plain" value={f.cpf || ""} onChange={e => s("cpf", e.target.value)} />
+                    <label className="flabel">Telefone</label>
+                    <input
+                      className="finput finput--plain"
+                      value={f.phone || ""}
+                      onChange={e => s("phone", e.target.value)}
+                      placeholder="(43) 99999-9999"
+                    />
                   </div>
                 </div>
 
                 <div className="fg2">
                   <div className="fg">
-                    <label className="flabel">Departamento</label>
-                    <input className="finput finput--plain" value={f.dept || ""} onChange={e => s("dept", e.target.value)} />
+                    <label className="flabel">CPF</label>
+                    <input
+                      className="finput finput--plain"
+                      value={f.cpf || ""}
+                      readOnly
+                      disabled
+                      title="O CPF não pode ser alterado. Entre em contato com o suporte."
+                    />
                   </div>
                   <div className="fg">
-                    <label className="flabel">Telefone</label>
-                    <input className="finput finput--plain" value={f.phone || ""} onChange={e => s("phone", e.target.value)} />
+                    <label className="flabel">Data de Nascimento</label>
+                    <input
+                      className="finput finput--plain"
+                      value={f.birthdate || ""}
+                      onChange={e => handleBirthdate(e.target.value)}
+                      placeholder="DD/MM/AAAA"
+                      maxLength={10}
+                    />
                   </div>
                 </div>
 
+                <div className="fg2">
+                  <div className="fg">
+                    <label className="flabel">E-mail</label>
+                    <input
+                      className="finput finput--plain"
+                      value={f.email || ""}
+                      readOnly
+                      disabled
+                      title="Para alterar o e-mail, entre em contato com o suporte."
+                    />
+                  </div>
+                  <div className="fg">
+                    <label className="flabel">Nacionalidade</label>
+                    <input
+                      className="finput finput--plain"
+                      value={f.nationality || ""}
+                      onChange={e => s("nationality", e.target.value)}
+                      placeholder="Brasileira"
+                    />
+                  </div>
+                </div>
+
+                <div className="section-divider">📍 Endereço</div>
+
                 <div className="fg">
-                  <label className="flabel">E-mail Institucional</label>
-                  <input className="finput finput--plain" value={f.email || ""} onChange={e => s("email", e.target.value)} />
+                  <label className="flabel">Endereço</label>
+                  <input
+                    className="finput finput--plain"
+                    value={f.address || ""}
+                    onChange={e => s("address", e.target.value)}
+                    placeholder="Rua, número"
+                  />
+                </div>
+
+                <div className="fg2">
+                  <div className="fg">
+                    <label className="flabel">Cidade</label>
+                    <input
+                      className="finput finput--plain"
+                      value={f.city || ""}
+                      onChange={e => s("city", e.target.value)}
+                    />
+                  </div>
+                  <div className="fg">
+                    <label className="flabel">Estado</label>
+                    <input
+                      className="finput finput--plain"
+                      value={f.state || ""}
+                      onChange={e => s("state", e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="perfil-adm-actions">
-                  <button className="btn btn-ghost btn-sm">🕐 Ver Histórico</button>
-                  <button className="btn btn-primary" onClick={salvar}>Salvar alterações</button>
+                  <button
+                    className="btn btn-ghost"
+                    onClick={() => setF({ ...original })}
+                    disabled={saving}
+                  >
+                    Descartar
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={salvar}
+                    disabled={saving}
+                  >
+                    {saving ? "Salvando…" : "Salvar alterações"}
+                  </button>
                 </div>
 
               </div>
@@ -98,8 +261,7 @@ export default function PerfilAdm({ user, setUser, toast }) {
               <div>
                 <div className="perfil-adm-security__title">Segurança da Conta</div>
                 <p className="perfil-adm-security__sub">
-                  Para alterar seu CPF ou Departamento Principal, entre em contato com
-                  o suporte técnico da universidade.
+                  Para alterar seu CPF ou e-mail, entre em contato com o suporte técnico da universidade.
                 </p>
               </div>
             </div>

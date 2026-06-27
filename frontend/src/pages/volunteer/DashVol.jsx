@@ -1,11 +1,29 @@
 /* ═══════════════════════════════════════
    Dashboard do voluntário
 ═══════════════════════════════════════ */
+import { useState, useEffect } from "react";
 import logoEllp from "../../assets/mascote-ellp.png";
 import Topbar from "../../components/Topbar";
+import { userService } from "../../services/userService";
+
+// Campos obrigatórios para emissão do termo de voluntariado
+const REQUIRED_FIELDS = ["phone", "birthdate", "nationality", "course"];
 
 export default function DashVol({ user, setPage }) {
-  const incomplete = !user.complete;
+  const [missingFields, setMissingFields] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    userService.getProfile(user.id)
+      .then(data => {
+        if (cancelled) return;
+        setMissingFields(REQUIRED_FIELDS.filter(k => !data[k]));
+      })
+      .catch(() => { /* erro silencioso: não exibe banner em caso de falha de rede */ });
+    return () => { cancelled = true; };
+  }, [user.id]);
+
+  const incomplete = missingFields.length > 0;
 
   return (
     <div className="page-content">
