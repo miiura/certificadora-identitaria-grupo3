@@ -10,6 +10,9 @@ COPY package*.json ./
 # Instala todas as dependências (incluindo o nodemon que instalamos antes)
 RUN npm install
 
+# Instala o LibreOffice para permitir a conversão de arquivos .docx para .pdf
+RUN apk add --no-cache libreoffice
+
 # Copia o resto do código da sua máquina para dentro do contêiner
 COPY . .
 
