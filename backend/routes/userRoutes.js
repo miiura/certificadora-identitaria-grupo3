@@ -19,7 +19,7 @@ const router = express.Router();
  *              description: Acesso negado.
  */
 router.get('/', verificarToken, verificarPermissao(['ADMIN', 'COORDENADOR']), listarUsuarios);
-router.get('/coordinators', verificarToken, verificarPermissao(['ADMIN']), listarCoordenadores);
+router.get('/coordinators', verificarToken, verificarPermissao(['ADMIN', 'COORDENADOR']), listarCoordenadores);
 
 /**
  * @swagger

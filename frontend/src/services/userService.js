@@ -16,19 +16,20 @@ export const userService = {
         return response.data.usuarios;
     },
 
-    // Creates a volunteer via POST /auth/register, then PATCHes academic data if provided.
+    // Creates a user via POST /auth/register, then PATCHes academic data if role is VOLUNTARIO.
     createVolunteer: async (data) => {
         const cpfDigits = (data.cpf || '').replace(/\D/g, '');
+        const role = data.role || 'VOLUNTARIO';
         const regRes = await api.post('/auth/register', {
             name: data.name,
             email: data.email,
             cpf: cpfDigits,
             password: data.password || cpfDigits,
-            role: 'VOLUNTARIO',
+            role,
         });
         const newUser = regRes.data.usuario;
 
-        if (data.course || data.bond) {
+        if (role === 'VOLUNTARIO' && (data.course || data.bond)) {
             try {
                 const patchRes = await api.patch(`/users/${newUser._id}`, {
                     course: data.course || '',
@@ -45,8 +46,9 @@ export const userService = {
             name: newUser.name,
             email: newUser.email,
             cpf: newUser.cpf,
-            course: data.course || '',
-            bond: data.bond || 'DISCENTE',
+            role,
+            course: role === 'VOLUNTARIO' ? (data.course || '') : '',
+            bond: role === 'VOLUNTARIO' ? (data.bond || 'DISCENTE') : '',
             phone: '',
             status: 'active',
         };

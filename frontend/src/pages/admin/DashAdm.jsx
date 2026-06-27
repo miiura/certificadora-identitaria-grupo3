@@ -26,7 +26,7 @@ export default function DashAdm({ user, setPage, volunteers, setModalNewVol }) {
             </p>
             <div className="adm-welcome__actions">
               <button className="btn btn-primary" onClick={() => setModalNewVol(true)}>
-                + Novo Voluntário
+                + Novo Usuário
               </button>
               <button className="btn btn-orange" onClick={() => setPage("acao")}>
                 ✏ Editar Ação
