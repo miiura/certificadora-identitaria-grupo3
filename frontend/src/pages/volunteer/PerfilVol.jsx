@@ -7,6 +7,7 @@ import Topbar from "../../components/Topbar";
 import Avt from "../../components/Avt";
 import { COURSES, PERIODS } from "../../data/mockData";
 import { userService } from "../../services/userService";
+import { digits, fmtCpf, fmtPhone } from "../../utils/masks";
 
 export default function PerfilVol({ user, setUser, toast }) {
   const [f, setF]           = useState(null);
@@ -46,10 +47,10 @@ export default function PerfilVol({ user, setUser, toast }) {
 
   // ── Birthdate auto-mask: "01012000" → "01/01/2000" ──────────
   const handleBirthdate = (raw) => {
-    const digits = raw.replace(/\D/g, '').slice(0, 8);
-    let masked = digits;
-    if (digits.length > 4) masked = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
-    else if (digits.length > 2) masked = digits.slice(0, 2) + '/' + digits.slice(2);
+    const d = raw.replace(/\D/g, '').slice(0, 8);
+    let masked = d;
+    if (d.length > 4) masked = d.slice(0, 2) + '/' + d.slice(2, 4) + '/' + d.slice(4);
+    else if (d.length > 2) masked = d.slice(0, 2) + '/' + d.slice(2);
     s("birthdate", masked);
   };
 
@@ -184,10 +185,11 @@ export default function PerfilVol({ user, setUser, toast }) {
                   {/* CPF is sensitive — volunteers cannot edit it; admins can */}
                   <input
                     className="finput finput--plain"
-                    value={f.cpf || ""}
+                    value={fmtCpf(f.cpf)}
                     readOnly={!isAdmin}
                     disabled={!isAdmin}
-                    onChange={e => s("cpf", e.target.value)}
+                    onChange={e => s("cpf", digits(e.target.value))}
+                    maxLength={14}
                     title={isAdmin ? "" : "O CPF não pode ser alterado. Entre em contato com o suporte."}
                   />
                 </div>
@@ -289,9 +291,10 @@ export default function PerfilVol({ user, setUser, toast }) {
                   <label className="flabel">Telefone</label>
                   <input
                     className="finput finput--plain"
-                    value={f.phone || ""}
-                    onChange={e => s("phone", e.target.value)}
+                    value={fmtPhone(f.phone)}
+                    onChange={e => s("phone", digits(e.target.value))}
                     placeholder="(43) 99999-9999"
+                    maxLength={15}
                   />
                 </div>
               </div>

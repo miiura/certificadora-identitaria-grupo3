@@ -3,8 +3,8 @@
 ═══════════════════════════════════════ */
 import { useState, useEffect } from "react";
 import logoEllp from "../../assets/mascote-ellp.png";
-import Topbar  from "../../components/Topbar";
-import Badge   from "../../components/Badge";
+import Topbar from "../../components/Topbar";
+import Badge from "../../components/Badge";
 import { actionService } from "../../services/actionService";
 
 const EMPTY = { title: "", modality: "Projeto", validity: { start: "", end: "" }, coordinator: "" };
@@ -13,10 +13,10 @@ const EMPTY = { title: "", modality: "Projeto", validity: { start: "", end: "" }
 const extractCoordinatorId = (c) => (c && typeof c === "object" ? c._id : c) || "";
 
 export default function DadosAcao({ user, setProject, toast, volunteers }) {
-  const [f, setF]               = useState(EMPTY);
+  const [f, setF] = useState(EMPTY);
   const [original, setOriginal] = useState(EMPTY);
-  const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [coordinators, setCoordinators] = useState([]);
 
   const s = (k, v) => setF(p => ({ ...p, [k]: v }));
@@ -62,9 +62,9 @@ export default function DadosAcao({ user, setProject, toast, volunteers }) {
     setSaving(true);
     try {
       const updated = await actionService.updateAction({
-        title:       f.title,
-        modality:    f.modality,
-        validity:    f.validity,
+        title: f.title,
+        modality: f.modality,
+        validity: f.validity,
         coordinator: f.coordinator || null,
       });
       const normalized = { ...updated, coordinator: extractCoordinatorId(updated.coordinator) };
@@ -177,13 +177,13 @@ export default function DadosAcao({ user, setProject, toast, volunteers }) {
               </div>
 
               <div className="modal-foot" style={{ borderTop: "none", paddingLeft: 0 }}>
-                <button
+                {/* <button
                   className="btn btn-ghost"
                   onClick={() => setF({ ...original })}
                   disabled={saving}
                 >
                   Descartar
-                </button>
+                </button> */}
                 <button
                   className="btn btn-primary"
                   onClick={salvar}

@@ -7,7 +7,7 @@ import Topbar from "../../components/Topbar";
 import { userService } from "../../services/userService";
 import { actionService } from "../../services/actionService";
 
-const MONTH_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const MONTH_SHORT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 // Formats "MM/YYYY" → "Mmm/YYYY"
 const fmtPeriod = (str) => {
@@ -22,10 +22,11 @@ const REQUIRED = ["name", "cpf", "birthdate", "phone", "course", "ra", "address"
 const missingFields = (vol) => REQUIRED.filter(k => !vol[k]);
 
 export default function GerarTermo({ user, toast }) {
-  const [vol,    setVol]    = useState(null);
+  const [vol, setVol] = useState(null);
   const [action, setAction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const termDate = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit", month: "long", year: "numeric",
@@ -50,7 +51,7 @@ export default function GerarTermo({ user, toast }) {
     return () => { cancelled = true; };
   }, [user.id]);
 
-  // ── Download ───────────────────────────────────────────────
+  // ── Downloads ──────────────────────────────────────────────
   const baixarTermo = async () => {
     setDownloading(true);
     try {
@@ -60,6 +61,19 @@ export default function GerarTermo({ user, toast }) {
       toast("Erro ao gerar o termo. Verifique seus dados.", "❌");
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const baixarTermoPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      await userService.downloadTermoPdf();
+      toast("PDF gerado com sucesso!", "📄");
+    } catch (err) {
+      const msg = err.response?.data?.erro || "Erro ao gerar o PDF.";
+      toast(msg, "❌");
+    } finally {
+      setDownloadingPdf(false);
     }
   };
 
@@ -75,8 +89,8 @@ export default function GerarTermo({ user, toast }) {
     );
   }
 
-  const missing  = vol ? missingFields(vol) : REQUIRED;
-  const coord    = action?.coordinator;
+  const missing = vol ? missingFields(vol) : REQUIRED;
+  const coord = action?.coordinator;
   const activities = (vol?.activities || []).filter(a => a?.trim());
 
   return (
@@ -250,9 +264,17 @@ export default function GerarTermo({ user, toast }) {
                 <button
                   className="btn btn-orange btn-block"
                   onClick={baixarTermo}
-                  disabled={downloading}
+                  disabled={downloading || downloadingPdf}
                 >
-                  {downloading ? "Gerando…" : "⬇ Baixar Termo (.docx)"}
+                  {downloading ? "Gerando…" : "⬇ Exportar (.docx)"}
+                </button>
+                <button
+                  className="btn btn-primary btn-block"
+                  onClick={baixarTermoPdf}
+                  disabled={downloading || downloadingPdf}
+                  style={{ marginTop: 8 }}
+                >
+                  {downloadingPdf ? "Gerando PDF…" : "⬇ Exportar (.pdf)"}
                 </button>
                 <div className="termo-actions__tags">
                   <span>🏛 Modelo Oficial UTFPR</span>
@@ -279,14 +301,21 @@ export default function GerarTermo({ user, toast }) {
           </div>
         </div>
 
-        {/* Botão fixo no rodapé */}
+        {/* Botões fixos no rodapé */}
         <div className="termo-bottom-btn">
           <button
             className="btn btn-orange"
             onClick={baixarTermo}
-            disabled={downloading}
+            disabled={downloading || downloadingPdf}
           >
-            📄 {downloading ? "Gerando…" : "Gerar Termo"}
+            📄 {downloading ? "Gerando…" : "Gerar Termo (.docx)"}
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={baixarTermoPdf}
+            disabled={downloading || downloadingPdf}
+          >
+            📄 {downloadingPdf ? "Gerando PDF…" : "Exportar PDF"}
           </button>
         </div>
 

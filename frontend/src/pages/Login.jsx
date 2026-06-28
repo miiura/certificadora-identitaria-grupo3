@@ -6,11 +6,11 @@ import logoEllp from "../assets/mascote-ellp.png";
 import { authService } from "../services/authService";
 
 export default function Login({ onLogin }) {
-  const [email,    setEmail]    = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [error,    setError]    = useState("");
-  const [loading,  setLoading]  = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const submit = async () => {
     if (!email || !password) { setError("Preencha e-mail e senha."); return; }
@@ -103,8 +103,8 @@ export default function Login({ onLogin }) {
           </button>
 
           <p className="login-signup">
-            Não possui uma conta?{" "}
-            <span className="login-signup__link">Solicitar acesso</span>
+            Não possui uma conta? <br></br>Solicite a criação ao coordenador do projeto{" "}
+            {/* <span className="login-signup__link">Solicitar acesso</span> */}
           </p>
 
           <div className="login-footer">
