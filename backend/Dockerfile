@@ -4,14 +4,16 @@ FROM node:20-alpine
 # Define a pasta de trabalho dentro do contêiner
 WORKDIR /usr/src/app
 
+# Instala o LibreOffice ANTES de copiar o package.json.
+# Isso garante que o Docker faça o cache dessa camada pesada e não baixe tudo de novo
+# a cada nova biblioteca adicionada ao seu projeto Node.
+RUN apk add --no-cache libreoffice
+
 # Copia os arquivos de dependência primeiro (isso ajuda no cache do Docker)
 COPY package*.json ./
 
-# Instala todas as dependências (incluindo o nodemon que instalamos antes)
+# Instala todas as dependências (incluindo o nodemon)
 RUN npm install
-
-# Instala o LibreOffice para permitir a conversão de arquivos .docx para .pdf
-RUN apk add --no-cache libreoffice
 
 # Copia o resto do código da sua máquina para dentro do contêiner
 COPY . .

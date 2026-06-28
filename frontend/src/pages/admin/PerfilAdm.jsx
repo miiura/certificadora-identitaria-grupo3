@@ -3,14 +3,15 @@
 ═══════════════════════════════════════ */
 import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
-import Avt    from "../../components/Avt";
+import Avt from "../../components/Avt";
 import { userService } from "../../services/userService";
+import { digits, fmtCpf, fmtPhone } from "../../utils/masks";
 
 export default function PerfilAdm({ user, setUser, toast }) {
-  const [f, setF]               = useState(null);
+  const [f, setF] = useState(null);
   const [original, setOriginal] = useState(null);
-  const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 
@@ -39,10 +40,10 @@ export default function PerfilAdm({ user, setUser, toast }) {
 
   // ── Birthdate auto-mask: "01012000" → "01/01/2000" ──────────
   const handleBirthdate = (raw) => {
-    const digits = raw.replace(/\D/g, '').slice(0, 8);
-    let masked = digits;
-    if (digits.length > 4) masked = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
-    else if (digits.length > 2) masked = digits.slice(0, 2) + '/' + digits.slice(2);
+    const d = raw.replace(/\D/g, '').slice(0, 8);
+    let masked = d;
+    if (d.length > 4) masked = d.slice(0, 2) + '/' + d.slice(2, 4) + '/' + d.slice(4);
+    else if (d.length > 2) masked = d.slice(0, 2) + '/' + d.slice(2);
     s("birthdate", masked);
   };
 
@@ -52,13 +53,13 @@ export default function PerfilAdm({ user, setUser, toast }) {
     setSaving(true);
     try {
       const updated = await userService.updateProfile(user.id, {
-        name:        f.name,
-        phone:       f.phone,
-        birthdate:   f.birthdate,
+        name: f.name,
+        phone: f.phone,
+        birthdate: f.birthdate,
         nationality: f.nationality,
-        address:     f.address,
-        city:        f.city,
-        state:       f.state,
+        address: f.address,
+        city: f.city,
+        state: f.state,
         ...(f.role === 'COORDENADOR' ? { department: f.department } : {}),
       });
 
@@ -154,9 +155,10 @@ export default function PerfilAdm({ user, setUser, toast }) {
                     <label className="flabel">Telefone</label>
                     <input
                       className="finput finput--plain"
-                      value={f.phone || ""}
-                      onChange={e => s("phone", e.target.value)}
+                      value={fmtPhone(f.phone)}
+                      onChange={e => s("phone", digits(e.target.value))}
                       placeholder="(43) 99999-9999"
+                      maxLength={15}
                     />
                   </div>
                 </div>
@@ -166,7 +168,7 @@ export default function PerfilAdm({ user, setUser, toast }) {
                     <label className="flabel">CPF</label>
                     <input
                       className="finput finput--plain"
-                      value={f.cpf || ""}
+                      value={fmtCpf(f.cpf)}
                       readOnly
                       disabled
                       title="O CPF não pode ser alterado. Entre em contato com o suporte."
@@ -253,13 +255,13 @@ export default function PerfilAdm({ user, setUser, toast }) {
                 </div>
 
                 <div className="perfil-adm-actions">
-                  <button
+                  {/* <button
                     className="btn btn-ghost"
                     onClick={() => setF({ ...original })}
                     disabled={saving}
                   >
                     Descartar
-                  </button>
+                  </button> */}
                   <button
                     className="btn btn-primary"
                     onClick={salvar}

@@ -1,5 +1,7 @@
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
+import libre from 'libreoffice-convert';
+import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,6 +10,8 @@ import User from '../models/User.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_PATH = path.join(__dirname, '../templates/Termo-Voluntário.docx');
+
+const libreConvert = promisify(libre.convert.bind(libre));
 
 // ── Helpers ────────────────────────────────────────────────────────
 
@@ -118,121 +122,134 @@ const buildModalityStr = (modality) => {
     return 'Modalidade:     ' + opts.map(o => `(${o === sel ? ' x ' : '   '}) ${o}`).join('             ');
 };
 
-// ── Main controller ───────────────────────────────────────────────
+// ── Resolve userId (shared between DOCX and PDF endpoints) ────────
+
+const resolveUserId = (req) => {
+    let userId = req.usuario._id;
+    if (req.query.userId && ['ADMIN', 'COORDENADOR'].includes(req.usuario.role)) {
+        userId = req.query.userId;
+    }
+    return userId;
+};
+
+// ── Core: build the filled DOCX as a Buffer ───────────────────────
+
+const buildDocxBuffer = async (userId) => {
+    const [volunteer, action] = await Promise.all([
+        User.findById(userId),
+        Action.findOne().populate('coordinator'),
+    ]);
+
+    if (!volunteer) throw Object.assign(new Error('Voluntário não encontrado.'), { status: 404 });
+    if (!action)    throw Object.assign(new Error('Dados da ação não encontrados.'), { status: 404 });
+
+    const vd    = volunteer.volunteerData || {};
+    const addr  = vd.address || {};
+    const coord = action.coordinator;
+    const coordD = coord?.coordinatorData || {};
+
+    const today   = new Date();
+    const todayFmt = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+    const periodStart = fmtMonthYear(vd.periodStart);
+    const periodEnd   = fmtMonthYear(vd.periodEnd);
+
+    // ── Load template ──────────────────────────────────────────
+    const buf = fs.readFileSync(TEMPLATE_PATH);
+    const zip = new PizZip(buf);
+    let xml = zip.file('word/document.xml').asText();
+
+    // ── Pre-processing (before docxtemplater) ─────────────────
+
+    // 1. Cronograma period: replace COMPLETE {{Início}} and {{fim}} text nodes
+    xml = xml.replace(/<w:t[^>]*>\{\{Início\}\}<\/w:t>/g,
+        `<w:t xml:space="preserve">${escapeXml(periodStart)}</w:t>`);
+    xml = xml.replace(/<w:t[^>]*>\{\{fim\}\}<\/w:t>/g,
+        `<w:t xml:space="preserve">${escapeXml(periodEnd)}</w:t>`);
+
+    // 2. Coordinator name: template has broken "{{nome" (no closing }})
+    xml = xml.replace(/<w:t[^>]*>Nome: \{\{nome<\/w:t>/,
+        `<w:t xml:space="preserve">Nome: ${escapeXml(coord?.name || '')}</w:t>`);
+
+    // 3. Coordinator fields without placeholders
+    xml = xml.replace(/(<w:t[^>]*>CPF: )(<\/w:t>)/,
+        `$1${escapeXml(coord?.cpf || '')}$2`);
+    xml = xml.replace(/(<w:t[^>]*>Departamento: )(<\/w:t>)/,
+        `$1${escapeXml(coordD.department || '')}$2`);
+    xml = xml.replace(/(<w:t[^>]*>Fone: )(<\/w:t>)/,
+        `$1${escapeXml(coord?.phone || '')}$2`);
+    xml = xml.replace(/(<w:t[^>]*>E-mail: )(<\/w:t>)/,
+        `$1${escapeXml(coord?.email || '')}$2`);
+
+    // 4. Action title
+    xml = xml.replace(/(<w:t[^>]*>T[^<]{0,20}da a[^<]{0,5}o: )(<\/w:t>)/,
+        `$1${escapeXml(action.title || '')}$2`);
+
+    // 5. Modality: re-build the cell text marking the correct option
+    xml = xml.replace(/<w:t[^>]*>Modalidade:[^<]*<\/w:t>/,
+        `<w:t xml:space="preserve">${escapeXml(buildModalityStr(action.modality))}</w:t>`);
+
+    // 6. Date field
+    xml = xml.replace(/(<w:t[^>]*>Data: )(<\/w:t>)/,
+        `$1${escapeXml(todayFmt)}$2`);
+
+    // 7. Schedule X marks
+    xml = fillSchedule(xml, buildScheduleLookup(vd.schedule));
+
+    // ── docxtemplater pass ─────────────────────────────────────
+    zip.file('word/document.xml', xml);
+
+    const doc = new Docxtemplater(zip, {
+        delimiters: { start: '{{', end: '}}' },
+        paragraphLoop: true,
+        linebreaks: true,
+    });
+
+    doc.render({
+        nome:       volunteer.name      || '',
+        nascimento: fmtDate(vd.birthDate),
+        cpf:        volunteer.cpf       || '',
+        curso:      vd.course           || '',
+        'período':  vd.period           || '',
+        ra:         vd.ra               || '',
+        rua:        addr.street         || '',
+        cidade:     addr.city           || '',
+        estado:     addr.state          || '',
+        fone:       volunteer.phone     || '',
+        email:      volunteer.email     || '',
+        atv1: (vd.activities || [])[0]  || '',
+        atv2: (vd.activities || [])[1]  || '',
+        atv3: (vd.activities || [])[2]  || '',
+        atv4: (vd.activities || [])[3]  || '',
+        inicio: action.validity?.start  || '',
+        fim:    action.validity?.end    || '',
+    });
+
+    const output = doc.getZip().generate({
+        type: 'nodebuffer',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        compression: 'DEFLATE',
+    });
+
+    const safeName = (volunteer.name || 'Voluntario').replace(/\s+/g, '_');
+    return { buffer: output, safeName };
+};
+
+// ── Controllers ───────────────────────────────────────────────────
 
 export const gerarTermo = async (req, res) => {
     try {
-        const userId = req.usuario._id;
+        const userId = resolveUserId(req);
+        const { buffer, safeName } = await buildDocxBuffer(userId);
 
-        const [volunteer, action] = await Promise.all([
-            User.findById(userId),
-            Action.findOne().populate('coordinator'),
-        ]);
-
-        if (!volunteer) return res.status(404).json({ erro: 'Voluntário não encontrado.' });
-        if (!action)    return res.status(404).json({ erro: 'Dados da ação não encontrados.' });
-
-        const vd    = volunteer.volunteerData || {};
-        const addr  = vd.address || {};
-        const coord = action.coordinator;
-        const coordD = coord?.coordinatorData || {};
-
-        const today   = new Date();
-        const todayFmt = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
-        const periodStart = fmtMonthYear(vd.periodStart);
-        const periodEnd   = fmtMonthYear(vd.periodEnd);
-
-        // ── Load template ──────────────────────────────────────────
-        const buf = fs.readFileSync(TEMPLATE_PATH);
-        const zip = new PizZip(buf);
-        let xml = zip.file('word/document.xml').asText();
-
-        // ── Pre-processing (before docxtemplater) ─────────────────
-
-        // 1. Cronograma period: replace COMPLETE {{Início}} and {{fim}} text nodes
-        //    (these are whole text nodes, not split — the SPLIT {{fim}} in Table 3
-        //     is left for docxtemplater to handle as the action validity end)
-        xml = xml.replace(/<w:t[^>]*>\{\{Início\}\}<\/w:t>/g,
-            `<w:t xml:space="preserve">${escapeXml(periodStart)}</w:t>`);
-        xml = xml.replace(/<w:t[^>]*>\{\{fim\}\}<\/w:t>/g,
-            `<w:t xml:space="preserve">${escapeXml(periodEnd)}</w:t>`);
-
-        // 2. Coordinator name: template has broken "{{nome" (no closing }})
-        //    Replace directly so docxtemplater only sees volunteer's {{nome}}
-        xml = xml.replace(/<w:t[^>]*>Nome: \{\{nome<\/w:t>/,
-            `<w:t xml:space="preserve">Nome: ${escapeXml(coord?.name || '')}</w:t>`);
-
-        // 3. Coordinator fields without placeholders
-        xml = xml.replace(/(<w:t[^>]*>CPF: )(<\/w:t>)/,
-            `$1${escapeXml(coord?.cpf || '')}$2`);
-        xml = xml.replace(/(<w:t[^>]*>Departamento: )(<\/w:t>)/,
-            `$1${escapeXml(coordD.department || '')}$2`);
-        xml = xml.replace(/(<w:t[^>]*>Fone: )(<\/w:t>)/,
-            `$1${escapeXml(coord?.phone || '')}$2`);
-        xml = xml.replace(/(<w:t[^>]*>E-mail: )(<\/w:t>)/,
-            `$1${escapeXml(coord?.email || '')}$2`);
-
-        // 4. Action title (label cell has no separate value cell)
-        xml = xml.replace(/(<w:t[^>]*>T[^<]{0,20}da a[^<]{0,5}o: )(<\/w:t>)/,
-            `$1${escapeXml(action.title || '')}$2`);
-
-        // 5. Modality: re-build the cell text marking the correct option
-        xml = xml.replace(/<w:t[^>]*>Modalidade:[^<]*<\/w:t>/,
-            `<w:t xml:space="preserve">${escapeXml(buildModalityStr(action.modality))}</w:t>`);
-
-        // 6. Date field in Table 8 (Local / Data)
-        xml = xml.replace(/(<w:t[^>]*>Data: )(<\/w:t>)/,
-            `$1${escapeXml(todayFmt)}$2`);
-
-        // 7. Schedule X marks in Table 7 (activity rows)
-        xml = fillSchedule(xml, buildScheduleLookup(vd.schedule));
-
-        // ── docxtemplater pass ─────────────────────────────────────
-        // Handles all remaining {{...}} placeholders, including split ones
-
-        zip.file('word/document.xml', xml);
-
-        const doc = new Docxtemplater(zip, {
-            delimiters: { start: '{{', end: '}}' },
-            paragraphLoop: true,
-            linebreaks: true,
-        });
-
-        doc.render({
-            nome:       volunteer.name      || '',
-            nascimento: fmtDate(vd.birthDate),
-            cpf:        volunteer.cpf       || '',
-            curso:      vd.course           || '',
-            'período':  vd.period           || '',
-            ra:         vd.ra               || '',
-            rua:        addr.street         || '',
-            cidade:     addr.city           || '',
-            estado:     addr.state          || '',
-            fone:       volunteer.phone     || '',
-            email:      volunteer.email     || '',
-            atv1: (vd.activities || [])[0]  || '',
-            atv2: (vd.activities || [])[1]  || '',
-            atv3: (vd.activities || [])[2]  || '',
-            atv4: (vd.activities || [])[3]  || '',
-            inicio: action.validity?.start  || '',
-            fim:    action.validity?.end    || '',  // action validity end (split {{fim}} in Table 3)
-        });
-
-        const output = doc.getZip().generate({
-            type: 'nodebuffer',
-            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            compression: 'DEFLATE',
-        });
-
-        const safeName = (volunteer.name || 'Voluntario').replace(/\s+/g, '_');
         res.setHeader('Content-Type',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         res.setHeader('Content-Disposition',
             `attachment; filename="Termo-${safeName}.docx"`);
-        res.send(output);
+        res.send(buffer);
 
     } catch (erro) {
-        console.error('Erro ao gerar termo:', erro);
+        console.error('Erro ao gerar termo (.docx):', erro);
+        if (erro.status) return res.status(erro.status).json({ erro: erro.message });
         if (erro.properties?.errors) {
             return res.status(500).json({
                 erro: 'Erro ao processar template do termo.',
@@ -240,5 +257,29 @@ export const gerarTermo = async (req, res) => {
             });
         }
         res.status(500).json({ erro: 'Erro ao gerar termo.', detalhes: erro.message });
+    }
+};
+
+export const gerarTermoPdf = async (req, res) => {
+    try {
+        const userId = resolveUserId(req);
+        const { buffer, safeName } = await buildDocxBuffer(userId);
+
+        const pdfBuffer = await libreConvert(buffer, '.pdf', undefined);
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition',
+            `attachment; filename="Termo-${safeName}.pdf"`);
+        res.send(pdfBuffer);
+
+    } catch (erro) {
+        console.error('Erro ao gerar termo (.pdf):', erro);
+        if (erro.status) return res.status(erro.status).json({ erro: erro.message });
+        if (erro.message?.includes('soffice') || erro.message?.includes('LibreOffice')) {
+            return res.status(503).json({
+                erro: 'Conversão para PDF indisponível. O LibreOffice não está instalado no servidor.',
+            });
+        }
+        res.status(500).json({ erro: 'Erro ao gerar PDF.', detalhes: erro.message });
     }
 };

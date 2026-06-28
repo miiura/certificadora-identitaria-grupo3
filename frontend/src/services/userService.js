@@ -70,9 +70,10 @@ export const userService = {
         await api.delete(`/users/${id}`);
     },
 
-    // Downloads the filled DOCX term for the logged-in volunteer
-    downloadTermo: async () => {
-        const response = await api.get('/termo', { responseType: 'blob' });
+    // Downloads the filled DOCX term. ADMIN/COORDENADOR can pass a targetUserId.
+    downloadTermo: async (targetUserId) => {
+        const endpoint = targetUserId ? `/termo?userId=${targetUserId}` : '/termo';
+        const response = await api.get(endpoint, { responseType: 'blob' });
         const url = URL.createObjectURL(new Blob([response.data], {
             type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         }));
@@ -80,6 +81,19 @@ export const userService = {
         a.href = url;
         a.download = response.headers['content-disposition']
             ?.match(/filename="([^"]+)"/)?.[1] || 'Termo-Voluntário.docx';
+        a.click();
+        URL.revokeObjectURL(url);
+    },
+
+    // Downloads the filled PDF term. ADMIN/COORDENADOR can pass a targetUserId.
+    downloadTermoPdf: async (targetUserId) => {
+        const endpoint = targetUserId ? `/termo/pdf?userId=${targetUserId}` : '/termo/pdf';
+        const response = await api.get(endpoint, { responseType: 'blob' });
+        const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = response.headers['content-disposition']
+            ?.match(/filename="([^"]+)"/)?.[1] || 'Termo-Voluntário.pdf';
         a.click();
         URL.revokeObjectURL(url);
     },
