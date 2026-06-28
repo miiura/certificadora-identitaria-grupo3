@@ -93,7 +93,7 @@ export const obterUsuario = async (req, res) => {
         const { id } = req.params;
 
         const isOwner = req.usuario._id.toString() === id;
-        const isAdmin = req.usuario.role === 'ADMIN';
+        const isAdmin = ['ADMIN', 'COORDENADOR'].includes(req.usuario.role);
 
         if (!isOwner && !isAdmin) {
             return res.status(403).json({ erro: 'Acesso negado.' });
@@ -115,7 +115,7 @@ export const atualizarUsuario = async (req, res) => {
         const usuarioLogado = req.usuario;
 
         const isOwner = usuarioLogado._id.toString() === id;
-        const isAdmin = usuarioLogado.role === 'ADMIN';
+        const isAdmin = ['ADMIN', 'COORDENADOR'].includes(usuarioLogado.role);
 
         if (!isOwner && !isAdmin) {
             return res.status(403).json({
@@ -134,7 +134,7 @@ export const atualizarUsuario = async (req, res) => {
         if (email !== undefined) usuario.email = email;
 
         // Privilege escalation guard: only ADMIN can change role
-        if (role !== undefined && isAdmin) {
+        if (role !== undefined && usuarioLogado.role === 'ADMIN') {
             usuario.role = role;
         }
 
