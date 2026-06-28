@@ -11,9 +11,27 @@ O sistema visa substituir processos manuais por uma solução digital, centraliz
 
 ## ✨ Funcionalidades Principais
 
-* **Gestão de Usuários:** Cadastro, edição, inativação lógica dos voluntários e coordenadores do projeto.
-* **Emissão de Documentos:** Geração automática do Termo de Voluntariado em PDF.
-* **Segurança:** Autenticação de usuários via JWT e controle de níveis de acesso (Administrador/Comum).
+### 👥 Gestão de Usuários e Controle de Acesso
+* **Múltiplos Perfis:** Diferentes níveis de acesso (`VOLUNTARIO`, `COORDENADOR` e `ADMIN`).
+* **Cadastros Dinâmicos:** Formulários inteligentes que se adaptam ao perfil (ex: dados acadêmicos exigidos apenas para voluntários; alocação de departamento exclusiva para coordenadores).
+* **Autenticação Segura:** Senhas criptografadas (bcrypt) e controle de sessões.
+
+### 🎯 Gestão de Ações e Projetos
+* **Vínculo de Responsáveis:** Atribuição de usuários com perfil de coordenador como responsáveis pela ação.
+* **Acompanhamento de Atividades:** Registro detalhado da síntese de atividades a serem desenvolvidas por cada voluntário.
+
+### 📅 Cronogramas Dinâmicos
+* **Matriz de Execução:** Interface interativa para o cruzamento visual entre atividades e meses nos quais a atividade será realizada.
+
+### 📄 Geração e Exportação de Documentos
+* **Preenchimento Automatizado:** Geração do "Termo de Adesão para Voluntário" mesclando automaticamente os dados do sistema (instituição, ação, coordenador e voluntário logado).
+* **Exportação Flexível:** * Download em formato `.docx` para edições manuais e ajustes finos.
+  * Download em formato `.pdf` imutável.
+
+### ⚙️ Painel Administrativo (Dashboard)
+* **Gestão Centralizada:** Tela dedicada para administradores e coordenadores visualizarem toda a base de usuários.
+* **Filtros Avançados:** Busca combinada permitindo filtrar usuários por um ou múltiplos cargos simultaneamente.
+* **Pré-visualização e Ações Rápidas:** Capacidade de revisar dados, editar cronogramas de voluntários e emitir termos diretamente pela listagem, sem precisar navegar por múltiplas telas.
 
 ---
 
