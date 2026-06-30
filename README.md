@@ -4,8 +4,9 @@ O **Portal ELLP** é uma aplicação web desenvolvida para o gerenciamento e con
 
 O sistema visa substituir processos manuais por uma solução digital, centralizando informações, promovendo eficiência administrativa e garantindo maior agilidade e precisão no preenchimento de termos de voluntariado.
 
-**Acesse o planejamento:** https://docs.google.com/document/d/1IHckKJ0OoK6IOzt1yJcXd-NgYad67nbC-sKFsRNeL1k/edit?usp=sharing <br>
-**Acesse o protótipo:** https://www.figma.com/design/VGaBBQjMRWEabPjkqaNGZE/Untitled?node-id=0-1&t=SWGdFTGOA1hosOR8-1
+**Acesse o planejamento:** <https://docs.google.com/document/d/1IHckKJ0OoK6IOzt1yJcXd-NgYad67nbC-sKFsRNeL1k/edit?usp=sharing>
+**Acesse o cronogama:** <https://trello.com/invite/b/69fa9396393aff2348eaff53/ATTIe0af17447e7e3fef227e0b09e526c9719A31AAA4/certificadora-de-competenciasidjsgdgf>
+**Acesse o protótipo:** <https://www.figma.com/design/VGaBBQjMRWEabPjkqaNGZE/Untitled?node-id=0-1&t=SWGdFTGOA1hosOR8-1>
 
 ---
 
@@ -19,9 +20,6 @@ O sistema visa substituir processos manuais por uma solução digital, centraliz
 ### 🎯 Gestão de Ações e Projetos
 * **Vínculo de Responsáveis:** Atribuição de usuários com perfil de coordenador como responsáveis pela ação.
 * **Acompanhamento de Atividades:** Registro detalhado da síntese de atividades a serem desenvolvidas por cada voluntário.
-
-### 📅 Cronogramas Dinâmicos
-* **Matriz de Execução:** Interface interativa para o cruzamento visual entre atividades e meses nos quais a atividade será realizada.
 
 ### 📄 Geração e Exportação de Documentos
 * **Preenchimento Automatizado:** Geração do "Termo de Adesão para Voluntário" mesclando automaticamente os dados do sistema (instituição, ação, coordenador e voluntário logado).
@@ -39,11 +37,13 @@ O sistema visa substituir processos manuais por uma solução digital, centraliz
 
 O projeto foi desenvolvido utilizando a arquitetura de monorepo e a stack **MERN**, visando alta performance e escalabilidade:
 
-* **Frontend:** React.js (Componentização e reatividade)
-* **Backend:** Node.js com Express (APIs RESTful orientadas a eventos)
-* **Banco de Dados:** MongoDB (NoSQL, flexibilidade na modelagem de dados)
-* **Infraestrutura e Deploy:** Docker e Docker Compose (Padronização de ambiente)
-* **Prototipação:** Figma
+* **Frontend:** React.js (Componentização e reatividade) - (v.^19.2.5, <https://pt-br.react.dev/versions>)
+* **Backend:** Node.js com Express (APIs RESTful orientadas a eventos) - (node 18, 20, 22 ou superior, express v.^4.21.1, <https://nodejs.org/pt-br/download>, <https://expressjs.com/en/5x/starter/installing/>)
+* **Banco de Dados:** MongoDB (NoSQL, flexibilidade na modelagem de dados) - (v.^9.6.1, <https://www.mongodb.com/pt-br/docs/manual/installation/>)
+* **Infraestrutura e Deploy:** Docker e Docker Compose (Padronização de ambiente) - (v.4.80.0, imagem: node 20-alpine, suporta docker engine 20.10 ou superior, <https://www.docker.com/products/docker-desktop/>)
+* **Prototipação:** Figma (<https://www.figma.com>)
+* **Documentação/Planejamento:** Google Docs (<https://docs.google.com>)
+* **Cronograma/Organizador de Sprints:** Trello (<https://trello.com>)
 
 ---
 
@@ -56,7 +56,7 @@ Para rodar a aplicação, você precisará ter instalado em sua máquina:
 
 ### Passo a passo
 
-1. **Clone o repositório**
+1. **Clone o repositório na linha de comando (cmd, terminal, etc)**
    `git clone https://github.com/miiura/certificadora-identitaria-grupo3.git`
 
 2. **Acesse a pasta do projeto**
