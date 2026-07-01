@@ -11,7 +11,7 @@ O sistema visa substituir processos manuais por uma solução digital, centraliz
 ---
 
 ## 📄 **MANUAL DO USUÁRIO**
-* **Acesse-o neste link:** <https://docs.google.com/document/d/1NYnr1DcCUiBG8Ao_Q6pm9iVWRo5rKoMjboSJo0ybKso/edit?usp=sharing>
+* **Acesse-o neste link:** <https://canva.link/4ux61kvu97hbd1w>
 
 ---
 
