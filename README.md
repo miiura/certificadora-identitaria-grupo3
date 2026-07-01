@@ -10,6 +10,11 @@ O sistema visa substituir processos manuais por uma solução digital, centraliz
 
 ---
 
+## 📄 **MANUAL DO USUÁRIO**
+* **Acesse-o neste link:** <https://docs.google.com/document/d/1NYnr1DcCUiBG8Ao_Q6pm9iVWRo5rKoMjboSJo0ybKso/edit?usp=sharing>
+
+---
+
 ## ✨ Funcionalidades Principais
 
 ### 👥 Gestão de Usuários e Controle de Acesso
@@ -33,21 +38,6 @@ O sistema visa substituir processos manuais por uma solução digital, centraliz
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
-
-O projeto foi desenvolvido utilizando a arquitetura de monorepo e a stack **MERN**, visando alta performance e escalabilidade:
-
-* **Frontend:** React.js (Componentização e reatividade) - (v.^19.2.5, <https://pt-br.react.dev/versions>)
-* **Backend:** Node.js com Express (APIs RESTful orientadas a eventos) - (node 18, 20, 22 ou superior, express v.^4.21.1, <https://nodejs.org/pt-br/download>, <https://expressjs.com/en/5x/starter/installing/>)
-* **Banco de Dados:** MongoDB (NoSQL, flexibilidade na modelagem de dados) - (v.^9.6.1, <https://www.mongodb.com/pt-br/docs/manual/installation/>)
-* **Infraestrutura e Deploy:** Docker e Docker Compose (Padronização de ambiente) - (v.4.80.0, imagem: node 20-alpine, suporta docker engine 20.10 ou superior, <https://www.docker.com/products/docker-desktop/>)
-* **IDE/Ferramenta de codificação:** Visual Studio Code - (v.1.126.0/latest)
-* **Prototipação:** Figma - (<https://www.figma.com>)
-* **Documentação/Planejamento:** Google Docs - (<https://docs.google.com>)
-* **Cronograma/Organizador de Sprints:** Trello - (<https://trello.com>)
-
----
-
 ## ⚙️ Como executar o projeto localmente
 
 ### Pré-requisitos
@@ -67,10 +57,32 @@ Para rodar a aplicação, você precisará ter instalado em sua máquina:
    O projeto já está configurado para subir o Banco de Dados e o Backend automaticamente com o comando:
    `docker-compose up --build`
 
-4. **Acesse a aplicação**
+4. **Acesse a aplicação através destes endereços**
    * Backend (API): `http://localhost:3000`
    * Banco de Dados: Porta `27017`
    * Frontend: `http://localhost:5173`
+  
+5. **Login de usuários -- Use-os para testar o sistema:**
+   * Voluntário: `voluntario@ellp.com` -- `senha123`
+   * Coordenador: `coordenador@ellp.com` -- `senha123` 
+   * Admin: `admin@ellp.com` -- `admin`
+   
+  
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+O projeto foi desenvolvido utilizando a arquitetura de monorepo e a stack **MERN**, visando alta performance e escalabilidade:
+
+* **Frontend:** React.js (Componentização e reatividade) - (v.^19.2.5, <https://pt-br.react.dev/versions>)
+* **Backend:** Node.js com Express (APIs RESTful orientadas a eventos) - (node 18, 20, 22 ou superior, express v.^4.21.1, <https://nodejs.org/pt-br/download>, <https://expressjs.com/en/5x/starter/installing/>)
+* **Banco de Dados:** MongoDB (NoSQL, flexibilidade na modelagem de dados) - (v.^9.6.1, <https://www.mongodb.com/pt-br/docs/manual/installation/>)
+* **Geração de Documento:** Docxtemplater (v.3.69.0 - <https://www.npmjs.com/package/docxtemplater>) e LibreOffice (v.26.2.4 - <https://pt-br.libreoffice.org/baixar/>)
+* **Infraestrutura e Deploy:** Docker e Docker Compose (Padronização de ambiente) - (v.4.80.0, imagem: node 20-alpine, suporta docker engine 20.10 ou superior, <https://www.docker.com/products/docker-desktop/>)
+* **IDE/Ferramenta de codificação:** Visual Studio Code - (v.1.126.0/latest - <https://code.visualstudio.com/>)
+* **Prototipação:** Figma - (<https://www.figma.com>)
+* **Documentação/Planejamento:** Google Docs - (<https://docs.google.com>)
+* **Cronograma/Organizador de Sprints:** Trello - (<https://trello.com>)
 
 ---
 
